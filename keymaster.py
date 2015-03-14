@@ -12,6 +12,9 @@ import urllib2
 
 from smartcard.scard import *
 
+def hexarray(array):
+  return ":".join(["{:02x}".format(b) for b in array])
+
 hresult, hcontext = SCardEstablishContext(SCARD_SCOPE_USER)
 
 assert hresult==SCARD_S_SUCCESS
@@ -31,7 +34,7 @@ for i in xrange(len(readers)):
 hresult, newstates = SCardGetStatusChange(hcontext, 0, readerstates)
 
 while True:
-  hresult, newstates = SCardGetStatusChange(hcontext, INFINITE, newstates)
+  hresult, newstates = SCardGetStatusChange(hcontext, 5, newstates)
   for reader, eventstate, atr in newstates:
     if eventstate & SCARD_STATE_PRESENT:
       print 'Card found'
@@ -41,9 +44,10 @@ while True:
       SCARD_SHARE_SHARED,
       SCARD_PROTOCOL_T0 | SCARD_PROTOCOL_T1)
       hresult, reader, state, protocol, atr = SCardStatus(hcard)
-      print 'ATR:', atr
+      print 'ATR:', hexarray(atr)
       hresult, response = SCardTransmit(hcard,dwActiveProtocol,[0xFF,0xCA,0x00,0x00,0x00])
-      print 'ID:', response, '\n'
+      print 'ID:', hexarray(response), "\n"
+
 
       # TODO: POST the card data
       # url = 'http://hackadl.org/checkin'
