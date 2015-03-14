@@ -16,4 +16,6 @@ Software
 --------
 * Python
 
+Code by Pix & Simon.
+
 [Read more on the wiki](http://hackerspace-adelaide.org.au/wiki/Key_Master)

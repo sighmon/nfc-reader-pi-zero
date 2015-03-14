@@ -22,8 +22,8 @@ assert len(readers)>0
 
 reader = readers[0]
 
-print '\n###### Hackadl.org.au ######'
-print '######    Oh hello.   ######\n'
+print '\n###### Hackadl.org ######'
+print '######  Oh hello.  ######\n'
 
 readerstates = []
 for i in xrange(len(readers)):
@@ -31,7 +31,7 @@ for i in xrange(len(readers)):
 hresult, newstates = SCardGetStatusChange(hcontext, 0, readerstates)
 
 while True:
-  hresult, newstates = SCardGetStatusChange(hcontext, INFINITE, newstates)
+  hresult, newstates = SCardGetStatusChange(hcontext, 5000, newstates)
   for reader, eventstate, atr in newstates:
     if eventstate & SCARD_STATE_PRESENT:
       print 'Card found'
