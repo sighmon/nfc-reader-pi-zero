@@ -9,11 +9,15 @@
 
 import urllib
 import urllib2
+import base64
 
 from smartcard.scard import *
 
 def hexarray(array):
   return ":".join(["{:02x}".format(b) for b in array])
+
+def b64array(array):
+  return base64.b64encode("".join([chr(b) for b in array]))
 
 hresult, hcontext = SCardEstablishContext(SCARD_SCOPE_USER)
 
@@ -46,14 +50,20 @@ while True:
       hresult, reader, state, protocol, atr = SCardStatus(hcard)
       print 'ATR:', hexarray(atr)
       hresult, response = SCardTransmit(hcard,dwActiveProtocol,[0xFF,0xCA,0x00,0x00,0x00])
-      print 'ID:', hexarray(response), "\n"
-
-
-      # TODO: POST the card data
-      # url = 'http://hackadl.org/checkin'
-      # data = urllib.urlencode({'atr' : atr, 'id' : response})
-      # content = urllib2.urlopen(url, data).read()
-      # print content
+      if response[-2:] == [0x90,0x00]:
+        # Last two bytes 90 & 00 means success!
+        # Remove them before printing the ID.
+        id = response[:-2]
+        print 'ID:', hexarray(id)
+        # POST the card data
+        url = 'http://members.hackadl.org/lookup'
+        data = urllib.urlencode({'atr' : b64array(atr), 'id' : b64array(response)})
+        content = urllib2.urlopen(url, data).read()
+        print content
+      else:
+        # Unsuccessful read.
+        print 'ID: error! Response: ', hexarray(response)
+      print
 
     elif eventstate & SCARD_STATE_EMPTY:
       print 'Reader empty\n'
