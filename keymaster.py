@@ -32,6 +32,24 @@ reader = readers[0]
 print '\n###### Hackadl.org ######'
 print '######  Oh hello.  ######\n'
 
+print 'Development (d) or production (p)?'
+answer = raw_input()
+
+if answer == 'd':
+  url = 'http://localhost:3000/'
+else:
+  url = 'http://members.hackadl.org/'
+
+print 'Lookup (l) or checkin (c)?'
+answer = raw_input()
+
+if answer == 'l':
+  url += 'lookup'
+else:
+  url += 'checkin'
+
+print 'URL: ' + url
+
 readerstates = []
 for i in xrange(len(readers)):
     readerstates += [ (readers[i], SCARD_STATE_UNAWARE) ]
@@ -56,7 +74,6 @@ while True:
         id = response[:-2]
         print 'ID:', hexarray(id)
         # POST the card data
-        url = 'http://members.hackadl.org/lookup'
         data = urllib.urlencode({'atr' : b64array(atr), 'id' : b64array(response)})
         content = urllib2.urlopen(url, data).read()
         print content
