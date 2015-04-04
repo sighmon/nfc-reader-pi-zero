@@ -16,6 +16,27 @@ Software
 --------
 * Python
 
-Code by Pix & Simon.
+Bugs
+----
+
+When running on a Raspberri Pi, you need to install these:
+
+* $ sudo apt-get install python-pyscard
+* $ sudo apt-get install pcscd
+* $ sudo apt-get install pcsc-tools
+
+If the reader isn't showing up, solve it using this:
+http://enjoy-rfid.blogspot.com.au/2015/03/raspberry-pi-nfc.html
+
+Which gets you to create a blacklist file:
+<code>/etc/modprobe.d/raspi-blacklist.conf</code>
+
+	blacklist pn533
+	blacklist nfc
+
+Who
+---
+
+By [Pix](https://twitter.com/xiq) & [Simon](https://twitter.com/sighmon).
 
 [Read more on the wiki](http://hackerspace-adelaide.org.au/wiki/Key_Master)

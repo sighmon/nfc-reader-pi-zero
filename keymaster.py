@@ -7,6 +7,19 @@
 
 # TODO: Post successful card scan to hackadl.org
 
+# When running on a Raspberri Pi, you need to install these:
+# $ sudo apt-get install python-pyscard
+# $ sudo apt-get install pcscd
+# $ sudo apt-get install pcsc-tools
+
+# If the reader isn't showing up, solve it using this:
+# http://enjoy-rfid.blogspot.com.au/2015/03/raspberry-pi-nfc.html
+# Which gets you to create a blacklist file:
+# /etc/modprobe.d/raspi-blacklist.conf 
+# That just has:
+# blacklist pn533
+# blacklist nfc
+
 import urllib
 import urllib2
 import base64
