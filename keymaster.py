@@ -93,10 +93,11 @@ while True:
       else:
         # Unsuccessful read.
         print 'ID: error! Response: ', hexarray(response)
-      print
+	print
 
     elif eventstate & SCARD_STATE_EMPTY:
-      print 'Reader empty\n'
+	# Reader is empty, but commenting printing that to stop spamming on loop
+	# print 'Reader empty\n'
 
     else:
       print 'Unknown event state', eventstate
