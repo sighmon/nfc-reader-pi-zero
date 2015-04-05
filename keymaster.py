@@ -96,8 +96,8 @@ while True:
         print
 
     elif eventstate & SCARD_STATE_EMPTY:
-	# Reader is empty, but commenting printing that to stop spamming on loop
-	# print 'Reader empty\n'
+    	# Reader is empty, but commenting printing that to stop spamming on loop
+    	# print 'Reader empty\n'
 
     else:
       print 'Unknown event state', eventstate
