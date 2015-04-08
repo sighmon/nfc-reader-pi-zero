@@ -23,7 +23,9 @@
 import urllib
 import urllib2
 import base64
+import sys
 
+from select import select
 from smartcard.scard import *
 
 def hexarray(array):
@@ -41,27 +43,36 @@ hresult, readers = SCardListReaders(hcontext, [])
 assert len(readers)>0
 
 reader = readers[0]
+timeout = 10 # Timeout when there isn't any input
+url = 'http://members.hackadl.org/'
 
 print '\n###### Hackadl.org ######'
 print '######  Oh hello.  ######\n'
 
 print 'Development (d) or production (p)?'
-answer = raw_input()
-
-if answer == 'd':
-  url = 'http://localhost:3000/'
+rlist, _, _ = select([sys.stdin], [], [], timeout)
+if rlist:
+  answer = sys.stdin.readline()
+  if answer == 'd':
+      url = 'http://localhost:3000/'
 else:
-  url = 'http://members.hackadl.org/'
+  print "No input. Defaulting to production."
 
 print 'Lookup (l) or checkin (c)?'
-answer = raw_input()
-
-if answer == 'l':
-  url += 'lookup'
+rlist, _, _ = select([sys.stdin], [], [], timeout)
+if rlist:
+  answer = sys.stdin.readline()
+  if answer == 'l':
+    url += 'lookup'
+  else:
+    url += 'checkin'
 else:
   url += 'checkin'
+  print "No input. Defaulting to checkin."
 
 print 'URL: ' + url
+
+## NFC reader code
 
 readerstates = []
 for i in xrange(len(readers)):
