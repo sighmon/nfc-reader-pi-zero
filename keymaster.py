@@ -5,7 +5,7 @@
 # scard documentation:
 # http://pyscard.sourceforge.net/epydoc/smartcard.scard.scard-module.html
 
-# TODO: Post successful card scan to hackadl.org
+# Post successful card scan to hackadl.org
 
 # When running on a Raspberri Pi, you need to install these:
 # $ sudo apt-get install python-pyscard
@@ -19,6 +19,9 @@
 # That just has:
 # blacklist pn533
 # blacklist nfc
+
+# For a hacky way to make this run at boot on the RaspberryPi,
+# running this from /etc/rc.local
 
 import urllib
 import urllib2
@@ -44,7 +47,7 @@ assert len(readers)>0
 
 reader = readers[0]
 timeout = 10 # Timeout when there isn't any input
-url = 'http://members.hackadl.org/'
+url = 'https://members.hackerspace-adelaide.org.au/'
 
 print '\n###### Hackadl.org ######'
 print '######  Oh hello.  ######\n'
