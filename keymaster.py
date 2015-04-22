@@ -27,6 +27,7 @@ import urllib
 import urllib2
 import base64
 import sys
+import argparse
 
 from select import select
 from smartcard.scard import *
@@ -49,29 +50,44 @@ reader = readers[0]
 timeout = 10 # Timeout when there isn't any input
 url = 'https://members.hackerspace-adelaide.org.au/'
 
+parser = argparse.ArgumentParser()
+parser.add_argument("-d", "--development", help="Run in development environment talking to localhost:3000.", action="store_true")
+parser.add_argument("-l", "--lookup", help="Run in lookup mode, only for admins.", action="store_true")
+app_args = parser.parse_args()
+
+print app_args
+
 print '\n###### Hackadl.org ######'
 print '######  Oh hello.  ######\n'
 
-print 'Development (d) or production (p)?'
-rlist, _, _ = select([sys.stdin], [], [], timeout)
-if rlist:
-  answer = sys.stdin.readline()
-  if answer == 'd':
-      url = 'http://localhost:3000/'
+if app_args.development:
+  # Development mode
+  url = 'http://localhost:3000/'
 else:
-  print "No input. Defaulting to production."
+  print 'Development (d) or production (p)?'
+  rlist, _, _ = select([sys.stdin], [], [], timeout)
+  if rlist:
+    answer = sys.stdin.readline()
+    if answer[0] == 'd':
+      url = 'http://localhost:3000/'
+  else:
+    print "No input. Defaulting to production."
 
-print 'Lookup (l) or checkin (c)?'
-rlist, _, _ = select([sys.stdin], [], [], timeout)
-if rlist:
-  answer = sys.stdin.readline()
-  if answer == 'l':
-    url += 'lookup'
+if app_args.lookup:
+  # Lookup mode
+  url += 'lookup'
+else:
+  print 'Lookup (l) or checkin (c)?'
+  rlist, _, _ = select([sys.stdin], [], [], timeout)
+  if rlist:
+    answer = sys.stdin.readline()
+    if answer[0] == 'l':
+      url += 'lookup'
+    else:
+      url += 'checkin'
   else:
     url += 'checkin'
-else:
-  url += 'checkin'
-  print "No input. Defaulting to checkin."
+    print "No input. Defaulting to checkin."
 
 print 'URL: ' + url
 
