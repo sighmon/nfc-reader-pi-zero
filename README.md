@@ -16,14 +16,14 @@ Software
 --------
 * Python
 
-Bugs
+RaspberryPi
 ----
 
 When running on a Raspberri Pi, you need to install these:
 
-* $ sudo apt-get install python-pyscard
-* $ sudo apt-get install pcscd
-* $ sudo apt-get install pcsc-tools
+<code>$ sudo apt-get install python-pyscard</code><br />
+<code>$ sudo apt-get install pcscd</code><br />
+<code>$ sudo apt-get install pcsc-tools</code>
 
 If the reader isn't showing up, solve it using this:
 http://enjoy-rfid.blogspot.com.au/2015/03/raspberry-pi-nfc.html
@@ -33,6 +33,20 @@ Which gets you to create a blacklist file:
 
 	blacklist pn533
 	blacklist nfc
+	
+**Wifi**
+
+To use a TP-Link TL-WN322G Wifi USB, install:
+
+<code>$ sudo apt-get install zd1211-firmware</code>
+
+Then add the wireless hotspot information by running:
+
+<code>$ wpa_passphrase ssid-name passphrase > tmp.txt</code>
+
+<code>$ sudo wpa_supplicant -B -i wlan0 -c tmp.txt</code>
+
+You might need to restart the Pi, but it should be able to connect then.
 
 Who
 ---

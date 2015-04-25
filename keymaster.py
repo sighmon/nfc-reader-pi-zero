@@ -49,27 +49,30 @@ assert len(readers)>0
 reader = readers[0]
 timeout = 10 # Timeout when there isn't any input
 url = 'https://members.hackerspace-adelaide.org.au/'
+devUrl = 'http://localhost:3000/'
+
+# Parse arguments handed in when running
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-d", "--development", help="Run in development environment talking to localhost:3000.", action="store_true")
 parser.add_argument("-l", "--lookup", help="Run in lookup mode, only for admins.", action="store_true")
 app_args = parser.parse_args()
 
-print app_args
+# Welcome message
 
 print '\n###### Hackadl.org ######'
 print '######  Oh hello.  ######\n'
 
 if app_args.development:
   # Development mode
-  url = 'http://localhost:3000/'
+  url = devUrl
 else:
   print 'Development (d) or production (p)?'
   rlist, _, _ = select([sys.stdin], [], [], timeout)
   if rlist:
     answer = sys.stdin.readline()
     if answer[0] == 'd':
-      url = 'http://localhost:3000/'
+      url = devUrl
   else:
     print "No input. Defaulting to production."
 
