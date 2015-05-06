@@ -48,6 +48,14 @@ Then add the wireless hotspot information by running:
 
 You might need to restart the Pi, but it should be able to connect then.
 
+**GPIO pins**
+
+Using *wiringpi2*
+
+<code>$ sudo apt-get install python-dev python-pip</code>
+
+<code>$ sudo pip install wiringpi2</code>
+
 Who
 ---
 

@@ -32,6 +32,21 @@ import argparse
 from select import select
 from smartcard.scard import *
 
+import imp
+try:
+  imp.find_module('wiringpi2')
+  hasWiringPi = True
+except ImportError:
+  hasWiringPi = False
+
+if hasWiringPi:
+  # For GPIO pin control
+  import wiringpi2 as wiringpi  
+  from time import sleep
+  wiringpi.wiringPiSetupGpio()  
+  wiringpi.pinMode(16, 1)
+  wiringpi.digitalWrite(16, 0)
+
 def hexarray(array):
   return ":".join(["{:02x}".format(b) for b in array])
 
@@ -119,6 +134,8 @@ while True:
         # Remove them before printing the ID.
         id = response[:-2]
         print 'ID:', hexarray(id)
+        if hasWiringPi:
+          wiringpi.digitalWrite(16, 1)
         # POST the card data
         data = urllib.urlencode({'atr' : b64array(atr), 'id' : b64array(response)})
         content = urllib2.urlopen(url, data).read()
