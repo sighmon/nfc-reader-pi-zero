@@ -145,7 +145,7 @@ while True:
           wiringpi.softToneWrite(23, 2000)
           sleep(0.5)
           wiringpi.softToneWrite(23, 1000)
-          sleep(1.0)
+          sleep(0.5)
           wiringpi.softToneWrite(23, 0)
         else:
           # Play good sound
