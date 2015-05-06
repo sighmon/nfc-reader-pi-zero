@@ -43,9 +43,9 @@ if hasWiringPi:
   # For GPIO pin control
   import wiringpi2 as wiringpi  
   from time import sleep
-  wiringpi.wiringPiSetupGpio()  
-  wiringpi.pinMode(16, 1)
-  wiringpi.digitalWrite(16, 0)
+  wiringpi.wiringPiSetupGpio()
+  # Connect the pieso buzzer to pin 23
+  wiringpi.softToneCreate(23)
 
 def hexarray(array):
   return ":".join(["{:02x}".format(b) for b in array])
@@ -135,7 +135,13 @@ while True:
         id = response[:-2]
         print 'ID:', hexarray(id)
         if hasWiringPi:
-          wiringpi.digitalWrite(16, 1)
+          # Make a positive sound
+          for x in xrange(2000, 3000, 100):
+            wiringpi.softToneWrite(23, x)
+            sleep(0.05)
+          for x in xrange(3000, 2000, -100):
+            wiringpi.softToneWrite(23, x)
+            sleep(0.05)
         # POST the card data
         data = urllib.urlencode({'atr' : b64array(atr), 'id' : b64array(response)})
         content = urllib2.urlopen(url, data).read()
