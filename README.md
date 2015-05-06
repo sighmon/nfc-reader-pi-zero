@@ -56,6 +56,11 @@ Using *wiringpi2*
 
 <code>$ sudo pip install wiringpi2</code>
 
+Then with the RaspberryPi pointing with the SD card to the top, connect the buzzer to:
+
+* Ground to the third pin down from the top on the right column.
+* Power to the eighth pin down from the top on the right column.
+
 Who
 ---
 

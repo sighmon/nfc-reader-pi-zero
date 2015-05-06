@@ -44,7 +44,9 @@ if hasWiringPi:
   import wiringpi2 as wiringpi  
   from time import sleep
   wiringpi.wiringPiSetupGpio()
-  # Connect the pieso buzzer to pin 23
+  # Connect the pieso buzzer to GPIO 23
+  # Ground to the third pin down from the top on the right column.
+  # Power to the eighth pin down from the top on the right column.
   wiringpi.softToneCreate(23)
 
 def hexarray(array):
