@@ -134,18 +134,26 @@ while True:
         # Remove them before printing the ID.
         id = response[:-2]
         print 'ID:', hexarray(id)
-        if hasWiringPi:
-          # Make a positive sound
+        # POST the card data
+        data = urllib.urlencode({'atr' : b64array(atr), 'id' : b64array(response)})
+        content = urllib2.urlopen(url, data).read()
+        print content
+        if hasWiringPi and content == "null":
+          # Play bad sound
+          wiringpi.softToneWrite(23, 2000)
+          sleep(0.05)
+          wiringpi.softToneWrite(23, 2000)
+          sleep(0.05)
+          wiringpi.softToneWrite(23, 0)
+        else:
+          # Play good sound
           for x in xrange(2000, 3000, 100):
             wiringpi.softToneWrite(23, x)
             sleep(0.05)
           for x in xrange(3000, 2000, -100):
             wiringpi.softToneWrite(23, x)
             sleep(0.05)
-        # POST the card data
-        data = urllib.urlencode({'atr' : b64array(atr), 'id' : b64array(response)})
-        content = urllib2.urlopen(url, data).read()
-        print content
+          wiringpi.softToneWrite(23, 0)
       else:
         # Unsuccessful read.
         print 'ID: error! Response: ', hexarray(response)
