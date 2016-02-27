@@ -48,6 +48,46 @@ Then add the wireless hotspot information by running:
 
 You might need to restart the Pi, but it should be able to connect then.
 
+**Wifi - connect to multiple networks**
+
+If you'd like your pi to connect to home/work/hackerspace networks, you'll need to use a wpa-roam setup.
+
+The two files you need to edit are <code>/etc/network/interfaces</code> and <code>/etc/wpa_supplicant/wpa_supplicant.conf</code>
+
+	# /etc/network/interfaces
+	
+	auto lo
+	iface lo inet loopback
+	iface eth0 inet dhcp
+
+	allow-hotplug wlan0
+	iface wlan0 inet manual
+	wpa-roam /etc/wpa_supplicant/wpa_supplicant.conf
+
+	iface networkName1 inet dhcp
+	iface networkName2 inet dhcp
+
+And then use the same names here:
+
+	# /etc/wpa_supplicant/wpa_supplicant.conf
+	
+	ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+	update_config=1
+
+	network={
+	    ssid="funnySSID"
+	    psk="superSekret"
+	    id_str="networkName1"
+	}
+
+	network={
+	    ssid="workSSID"
+	    psk="suuuuuuperSekret"
+	    id_str="networkName2"
+	}
+	
+Restart the Pi and it should auto-connect to the network.
+
 **GPIO pins**
 
 Using *wiringpi2*
