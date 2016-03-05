@@ -80,6 +80,18 @@ app_args = parser.parse_args()
 print '\n###### Hackadl.org ######'
 print '######  Oh hello.  ######\n'
 
+# Welcome song
+
+wiringpi.softToneWrite(23, 1000)
+sleep(0.05)
+wiringpi.softToneWrite(23, 1000)
+sleep(0.05)
+wiringpi.softToneWrite(23, 1000)
+sleep(0.05)
+wiringpi.softToneWrite(23, 1500)
+sleep(0.5)
+wiringpi.softToneWrite(23, 0)
+
 if app_args.development:
   # Development mode
   url = devUrl
