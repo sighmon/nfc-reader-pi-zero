@@ -179,7 +179,7 @@ while True:
             wiringpi.softToneWrite(23, 1000)
             sleep(0.5)
             wiringpi.softToneWrite(23, 0)
-          elif: hexarray(atr) == shutdownATR and hexarray(id) == shutdownID
+          elif hexarray(atr) == shutdownATR and hexarray(id) == shutdownID:
             # Shutdown card
             wiringpi.softToneWrite(23, 2000)
             sleep(0.5)
