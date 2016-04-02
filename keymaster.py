@@ -59,7 +59,7 @@ def hexarray(array):
 def b64array(array):
   return base64.b64encode("".join([chr(b) for b in array]))
 
-def printToScreenAndSyslog(message)
+def printToScreenAndSyslog(message):
   print(message)
   syslog.syslog(message)
 
