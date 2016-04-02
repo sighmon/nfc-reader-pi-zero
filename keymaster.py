@@ -59,9 +59,9 @@ def hexarray(array):
 def b64array(array):
   return base64.b64encode("".join([chr(b) for b in array]))
 
-def printToScreenAndSyslog(message):
-  print(message)
-  syslog.syslog(message)
+def printToScreenAndSyslog(*args):
+  print(*args)
+  syslog.syslog(" ".join(args))
 
 hresult, hcontext = SCardEstablishContext(SCARD_SCOPE_USER)
 
