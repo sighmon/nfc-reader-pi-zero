@@ -28,6 +28,10 @@ import urllib2
 import base64
 import sys
 import argparse
+import syslog
+
+# Tag logs to syslog with keymaster
+syslog.openlog('keymaster')
 
 from select import select
 from smartcard.scard import *
@@ -55,6 +59,10 @@ def hexarray(array):
 def b64array(array):
   return base64.b64encode("".join([chr(b) for b in array]))
 
+def printToScreenAndSyslog(message)
+  print(message)
+  syslog.syslog(message)
+
 hresult, hcontext = SCardEstablishContext(SCARD_SCOPE_USER)
 
 assert hresult==SCARD_S_SUCCESS
@@ -77,8 +85,8 @@ app_args = parser.parse_args()
 
 # Welcome message
 
-print '\n###### Hackadl.org ######'
-print '######  Oh hello.  ######\n'
+printToScreenAndSyslog('\n###### Hackadl.org ######')
+printToScreenAndSyslog('######  Oh hello.  ######\n')
 
 # Welcome song
 
@@ -102,20 +110,20 @@ if app_args.development:
   # Development mode
   url = devUrl
 else:
-  print 'Development (d) or production (p)?'
+  printToScreenAndSyslog('Development (d) or production (p)?')
   rlist, _, _ = select([sys.stdin], [], [], timeout)
   if rlist:
     answer = sys.stdin.readline()
     if answer[0] == 'd':
       url = devUrl
   else:
-    print "No input. Defaulting to production."
+    printToScreenAndSyslog("No input. Defaulting to production.")
 
 if app_args.lookup:
   # Lookup mode
   url += 'lookup'
 else:
-  print 'Lookup (l) or checkin (c)?'
+  printToScreenAndSyslog('Lookup (l) or checkin (c)?')
   rlist, _, _ = select([sys.stdin], [], [], timeout)
   if rlist:
     answer = sys.stdin.readline()
@@ -125,9 +133,9 @@ else:
       url += 'checkin'
   else:
     url += 'checkin'
-    print "No input. Defaulting to checkin."
+    printToScreenAndSyslog("No input. Defaulting to checkin.")
 
-print 'URL: ' + url
+printToScreenAndSyslog('URL: ' + url)
 
 ## NFC reader code
 
@@ -140,25 +148,25 @@ while True:
   hresult, newstates = SCardGetStatusChange(hcontext, 5000, newstates)
   for reader, eventstate, atr in newstates:
     if eventstate & SCARD_STATE_PRESENT:
-      print 'Card found'
+      printToScreenAndSyslog('Card found')
       hresult, hcard, dwActiveProtocol = SCardConnect(
       hcontext,
       reader,
       SCARD_SHARE_SHARED,
       SCARD_PROTOCOL_T0 | SCARD_PROTOCOL_T1)
       hresult, reader, state, protocol, atr = SCardStatus(hcard)
-      print 'ATR:', hexarray(atr)
+      printToScreenAndSyslog('ATR:', hexarray(atr))
       hresult, response = SCardTransmit(hcard,dwActiveProtocol,[0xFF,0xCA,0x00,0x00,0x00])
       if response[-2:] == [0x90,0x00]:
         # Last two bytes 90 & 00 means success!
         # Remove them before printing the ID.
         id = response[:-2]
-        print 'ID:', hexarray(id)
+        printToScreenAndSyslog('ID:', hexarray(id))
         # POST the card data
         try:
           data = urllib.urlencode({'atr' : b64array(atr), 'id' : b64array(response)})
           content = urllib2.urlopen(url, data).read()
-          print content
+          printToScreenAndSyslog(content)
           if hasWiringPi and content == "null":
             # Play bad sound
             wiringpi.softToneWrite(23, 2000)
@@ -176,7 +184,7 @@ while True:
               sleep(0.05)
             wiringpi.softToneWrite(23, 0)
         except Exception, e:
-          print e
+          printToScreenAndSyslog(e)
           # Play bad sound
           wiringpi.softToneWrite(23, 2000)
           sleep(0.5)
@@ -189,9 +197,8 @@ while True:
           pass
       else:
         # Unsuccessful read.
-        print 'ID: error! Response: ', hexarray(response)
-        print
-
+        printToScreenAndSyslog('ID: error! Response: ', hexarray(response))
+        printToScreenAndSyslog()
     # elif eventstate & SCARD_STATE_EMPTY:
     	# Reader is empty, but commenting printing that to stop spamming on loop
     	# print 'Reader empty\n'
