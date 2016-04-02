@@ -29,9 +29,14 @@ import base64
 import sys
 import argparse
 import syslog
+import os
 
 # Tag logs to syslog with keymaster
 syslog.openlog('keymaster')
+
+# Shutdown card ATR & ID
+shutdownATR = '3b:8f:80:01:80:4f:0c:a0:00:00:03:06:03:00:01:00:00:00:00:6a'
+shutdownID = 'b3:bb:30:df'
 
 from select import select
 from smartcard.scard import *
@@ -174,6 +179,19 @@ while True:
             wiringpi.softToneWrite(23, 1000)
             sleep(0.5)
             wiringpi.softToneWrite(23, 0)
+          elif: hexarray(atr) == shutdownATR and hexarray(id) == shutdownID
+            # Shutdown card
+            wiringpi.softToneWrite(23, 2000)
+            sleep(0.5)
+            wiringpi.softToneWrite(23, 1000)
+            sleep(0.5)
+            wiringpi.softToneWrite(23, 750)
+            sleep(0.5)
+            wiringpi.softToneWrite(23, 250)
+            sleep(0.5)
+            wiringpi.softToneWrite(23, 0)
+            # shutdown
+            os.system('shutdown')
           else:
             # Play good sound
             for x in xrange(2000, 3000, 100):
