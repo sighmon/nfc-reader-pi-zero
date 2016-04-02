@@ -184,7 +184,7 @@ while True:
             sleep(0.5)
             wiringpi.softToneWrite(23, 0)
             # shutdown
-            os.system('shutdown')
+            os.system('shutdown now')
           elif hasWiringPi and content == "null":
             # Play bad sound
             wiringpi.softToneWrite(23, 2000)
