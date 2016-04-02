@@ -172,14 +172,7 @@ while True:
           data = urllib.urlencode({'atr' : b64array(atr), 'id' : b64array(response)})
           content = urllib2.urlopen(url, data).read()
           printToScreenAndSyslog(content)
-          if hasWiringPi and content == "null":
-            # Play bad sound
-            wiringpi.softToneWrite(23, 2000)
-            sleep(0.5)
-            wiringpi.softToneWrite(23, 1000)
-            sleep(0.5)
-            wiringpi.softToneWrite(23, 0)
-          elif hexarray(atr) == shutdownATR and hexarray(id) == shutdownID:
+          if hexarray(atr) == shutdownATR and hexarray(id) == shutdownID:
             # Shutdown card
             wiringpi.softToneWrite(23, 2000)
             sleep(0.5)
@@ -192,6 +185,13 @@ while True:
             wiringpi.softToneWrite(23, 0)
             # shutdown
             os.system('shutdown')
+          elif hasWiringPi and content == "null":
+            # Play bad sound
+            wiringpi.softToneWrite(23, 2000)
+            sleep(0.5)
+            wiringpi.softToneWrite(23, 1000)
+            sleep(0.5)
+            wiringpi.softToneWrite(23, 0)
           else:
             # Play good sound
             for x in xrange(2000, 3000, 100):
