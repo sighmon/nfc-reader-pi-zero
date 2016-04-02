@@ -60,7 +60,7 @@ def b64array(array):
   return base64.b64encode("".join([chr(b) for b in array]))
 
 def printToScreenAndSyslog(*args):
-  print(*args)
+  print(" ".join(args))
   syslog.syslog(" ".join(args))
 
 hresult, hcontext = SCardEstablishContext(SCARD_SCOPE_USER)
