@@ -216,7 +216,7 @@ while True:
       else:
         # Unsuccessful read.
         printToScreenAndSyslog('ID: error! Response: ', hexarray(response))
-        printToScreenAndSyslog()
+        # printToScreenAndSyslog()
     # elif eventstate & SCARD_STATE_EMPTY:
     	# Reader is empty, but commenting printing that to stop spamming on loop
     	# print 'Reader empty\n'
