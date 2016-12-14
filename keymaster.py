@@ -169,7 +169,7 @@ while True:
         printToScreenAndSyslog('ID:', hexarray(id))
         # POST the card data
         try:
-          data = urllib.urlencode({'atr' : b64array(atr), 'id' : b64array(response)})
+          data = urllib.urlencode({'atr' : b64array(atr), 'id' : b64array(id)})
           content = urllib2.urlopen(url, data).read()
           printToScreenAndSyslog(content)
           if hexarray(atr) == shutdownATR and hexarray(id) == shutdownID:
