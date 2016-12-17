@@ -202,7 +202,7 @@ while True:
               sleep(0.05)
             wiringpi.softToneWrite(23, 0)
         except Exception, e:
-          printToScreenAndSyslog(e)
+          printToScreenAndSyslog('Exception: ', e)
           # Play bad sound
           wiringpi.softToneWrite(23, 2000)
           sleep(0.5)
