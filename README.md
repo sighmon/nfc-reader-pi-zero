@@ -127,9 +127,17 @@ The ```echo``` command enters 'p' for production, and 'c' for checkin.
 It then tries to run the python script, and output that to logger with the tag 'keymaster'. The ```&``` symbol makes it run in the background.
 
 
+ESP8266
+---
+
+[Damien](https://github.com/33d) has ported this project to an [ESP8266](https://en.wikipedia.org/wiki/ESP8266) running the Arduino toolchain.
+
+See his project: [keymaster-esp8266](https://github.com/33d/keymaster-esp8266)
+
+
 Who
 ---
 
-By [Pix](https://twitter.com/xiq) & [Simon](https://twitter.com/sighmon).
+By [Pix](https://twitter.com/xiq), [Simon](https://twitter.com/sighmon) & Damien.
 
 [Read more on the wiki](http://hackerspace-adelaide.org.au/wiki/Key_Master)
