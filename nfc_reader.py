@@ -78,8 +78,8 @@ assert len(readers)>0
 
 reader = readers[0]
 timeout = 10 # Timeout when there isn't any input
-url = 'https://museumos-prod.acmi.net.au/'
-devUrl = 'http://172.16.5.107:3000/'
+url = 'https://museumos-prod.acmi.net.au/tap'
+devUrl = 'http://172.16.5.107:3000/tap'
 
 # Parse arguments handed in when running
 
