@@ -1,12 +1,6 @@
-Key Master
+NFC Reader prototype
 ==========
-An Arduino based RFID/NFC door access system that sends users welcome information to LED signs in the hackerspace, as well as pinging the future hackerspace website to count user visits to the space.
-
-Features
---------
-* Use any RFID/NFC device to check-in to a hack session.
-* Sends a welcome message to an LED display.
-* POSTs info to the [hackadl.org](http://hackadl.org) website.
+A Raspberry Pi Zero based NFC reader prototype to talk to MuseumOS.
 
 Hardware
 --------
@@ -36,11 +30,7 @@ Which gets you to create a blacklist file:
 	
 **Wifi**
 
-To use a TP-Link TL-WN322G Wifi USB, install:
-
-<code>$ sudo apt-get install zd1211-firmware</code>
-
-Then add the wireless hotspot information by running:
+To add wireless hotspot information, run:
 
 <code>$ wpa_passphrase ssid-name passphrase > tmp.txt</code>
 
@@ -116,12 +106,12 @@ Then with the RaspberryPi pointing with the SD card to the top, connect the buzz
 * Ground to the third pin down from the top on the right column.
 * Power to the eighth pin down from the top on the right column.
 
-Run the Hackerspace card reader on boot
+Run the card reader on boot
 ---
 
 To get this script to run at boot, add the following line to <code>/etc/rc.local</code>
 
-<code>echo -n 'p\nc\n' | python /home/pi/hackerspace/Key-Master/keymaster.py | logger -t keymaster &</code>
+<code>echo -n 'p\nc\n' | python /home/pi/code/nfc-reader-pi-zero/nfc_reader.py | logger -t nfc_reader &</code>
 
 The ```echo``` command enters 'p' for production, and 'c' for checkin.
 It then tries to run the python script, and output that to logger with the tag 'keymaster'. The ```&``` symbol makes it run in the background.
@@ -138,6 +128,6 @@ See his project: [keymaster-esp8266](https://github.com/33d/keymaster-esp8266)
 Who
 ---
 
-By [Pix](https://twitter.com/xiq), [Simon](https://twitter.com/sighmon) & Damien.
+By [Pix](https://twitter.com/xiq), [Simon](https://twitter.com/sighmon) & [Damien](https://github.com/33d).
 
 [Read more on the wiki](http://hackerspace-adelaide.org.au/wiki/Key_Master)

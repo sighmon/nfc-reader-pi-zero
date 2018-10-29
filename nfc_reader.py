@@ -1,11 +1,11 @@
-#######################################################
-## Key Master - Hackerspace Adelaide NFC Door reader ##
-#######################################################
+################################################
+## NFC Reader - MuseumOS NFC prototype reader ##
+################################################
 
 # scard documentation:
 # http://pyscard.sourceforge.net/epydoc/smartcard.scard.scard-module.html
 
-# Post successful card scan to hackadl.org
+# Post successful card scan to museumos-prod.acmi.net.au
 
 # When running on a Raspberri Pi, you need to install these:
 # $ sudo apt-get install python-pyscard
@@ -31,8 +31,8 @@ import argparse
 import syslog
 import os
 
-# Tag logs to syslog with keymaster
-syslog.openlog('keymaster')
+# Tag logs to syslog with nfc_reader
+syslog.openlog('nfc_reader')
 
 # Shutdown card ATR & ID
 shutdownATR = '3b:8f:80:01:80:4f:0c:a0:00:00:03:06:03:00:01:00:00:00:00:6a'
@@ -43,14 +43,14 @@ from smartcard.scard import *
 
 import imp
 try:
-  imp.find_module('wiringpi2')
+  imp.find_module('wiringpi')
   hasWiringPi = True
 except ImportError:
   hasWiringPi = False
 
 if hasWiringPi:
   # For GPIO pin control
-  import wiringpi2 as wiringpi  
+  import wiringpi as wiringpi  
   from time import sleep
   wiringpi.wiringPiSetupGpio()
   # Connect the pieso buzzer to GPIO 23
@@ -78,8 +78,8 @@ assert len(readers)>0
 
 reader = readers[0]
 timeout = 10 # Timeout when there isn't any input
-url = 'https://members.hackerspace-adelaide.org.au/'
-devUrl = 'http://localhost:3000/'
+url = 'https://museumos-prod.acmi.net.au/'
+devUrl = 'http://172.16.5.107:3000/'
 
 # Parse arguments handed in when running
 
@@ -90,7 +90,7 @@ app_args = parser.parse_args()
 
 # Welcome message
 
-printToScreenAndSyslog('\n###### Hackadl.org ######')
+printToScreenAndSyslog('\n###### MuseumOS ######')
 printToScreenAndSyslog('######  Oh hello.  ######\n')
 
 # Welcome song
