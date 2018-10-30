@@ -35,8 +35,8 @@ import os
 syslog.openlog('nfc_reader')
 
 # Shutdown card ATR & ID
-shutdownATR = '3b:8f:80:01:80:4f:0c:a0:00:00:03:06:03:00:01:00:00:00:00:6a'
-shutdownID = 'b3:bb:30:df'
+shutdownATR = '3b:8f:80:01:80:4f:0c:a0:00:00:03:06:03:00:03:00:00:00:00:68'
+shutdownID = '04:a3:8c:c2:da:51:80'
 
 from select import select
 from smartcard.scard import *
