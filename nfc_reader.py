@@ -32,6 +32,7 @@ import syslog
 import os
 import socket
 import config
+import json
 
 # Tag logs to syslog with nfc_reader
 syslog.openlog('nfc_reader')
