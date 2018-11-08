@@ -196,7 +196,7 @@ while True:
           printToScreenAndSyslog(json.dumps(data))
           request = urllib2.Request(url)
           request.add_header('Content-Type', 'application/json')
-          content = urllib2.urlopen(url, json.dumps(data)).read()
+          content = urllib2.urlopen(request, json.dumps(data)).read()
           printToScreenAndSyslog(content)
           if hexarray(atr) == shutdownATR and hexarray(id) == shutdownID:
             # Shutdown card
