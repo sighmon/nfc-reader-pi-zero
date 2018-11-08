@@ -48,7 +48,7 @@ import hashlib
 from select import select
 from smartcard.scard import *
 
-from uuid
+import uuid
 # Get mac address
 def get_mac():
   mac_num = hex(uuid.getnode()).replace('0x', '').upper()
