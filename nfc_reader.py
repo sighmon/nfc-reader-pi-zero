@@ -69,7 +69,8 @@ def generateMD5ForTap():
   m = hashlib.md5()
   currentDateTime = datetime.datetime.now()
   datetimeMD5Format = currentDateTime.strftime("%Y/%m/%d-%H:%M:%S")
-  return m.update((md5secret + datetimeMD5Format).encode('utf-8'))
+  m.update((md5secret + datetimeMD5Format).encode('utf-8'))
+  return m.hexdigest()
 
 import imp
 try:
