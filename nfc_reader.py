@@ -55,11 +55,13 @@ utc_offset_sec = time.altzone if time.localtime().tm_isdst else time.timezone
 utc_offset = datetime.timedelta(seconds=-utc_offset_sec)
 
 def datetimeNowTimeZoneIso8601():
-  return datetime.datetime.now().replace(tzinfo=datetime.timezone(offset=utc_offset)).isoformat()
+  # Python3
+  # return datetime.datetime.now().replace(tzinfo=datetime.timezone(offset=utc_offset)).isoformat()
+  return datetime.datetime.now().isoformat()
 
 def generateMD5ForTap():
   m = hashlib.md5()
-  currentDateTime = datetime.datetime.now().replace(tzinfo=datetime.timezone(offset=utc_offset))
+  currentDateTime = datetime.datetime.now()
   datetimeMD5Format = currentDateTime.strftime("%Y/%m/%d-%H:%M:%S")
   return m.update((md5secret + datetimeMD5Format).encode('utf-8'))
 
