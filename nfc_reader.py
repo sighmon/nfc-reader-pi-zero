@@ -177,19 +177,20 @@ while True:
         printToScreenAndSyslog('ID:', hexarray(id))
         # POST the card data
         try:
-          data = urllib.urlencode(
-            {
-              'atr' : b64array(atr),
-              'uid' : b64array(id),
-              'mac_address' : get_mac(),
-              'reader_ip' : socket.gethostbyname(socket.gethostname()),
-              'reader_name' : 'nfc-' + 'xxx',  # TODO: Add IP here.
-              'reader_model' : 'ACS ACR122U-A2NR',
-              'tap_datetime' : datetimeNowTimeZoneIso8601(),  # ISO8601 format
-              'md5' : generateMD5ForTap()
-            }
-          )
-          content = urllib2.urlopen(url, data).read()
+          data = {
+            'atr' : b64array(atr),
+            'uid' : b64array(id),
+            'mac_address' : get_mac(),
+            'reader_ip' : socket.gethostbyname(socket.gethostname()),
+            'reader_name' : 'nfc-' + 'xxx',  # TODO: Add IP here.
+            'reader_model' : 'ACS ACR122U-A2NR',
+            'tap_datetime' : datetimeNowTimeZoneIso8601(),  # ISO8601 format
+            'md5' : generateMD5ForTap()
+          }
+          printToScreenAndSyslog(json.dumps(data))
+          request = urllib2.Request(url)
+          request.add_header('Content-Type', 'application/json')
+          content = urllib2.urlopen(url, json.dumps(data)).read()
           printToScreenAndSyslog(content)
           if hexarray(atr) == shutdownATR and hexarray(id) == shutdownID:
             # Shutdown card
