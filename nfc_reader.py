@@ -52,7 +52,7 @@ import uuid
 # Get mac address
 def get_mac():
   mac_num = hex(uuid.getnode()).replace('0x', '').upper()
-  mac = '-'.join(mac_num[i : i + 2] for i in range(0, 11, 2))
+  mac = ':'.join(mac_num[i : i + 2] for i in range(0, 11, 2))
   return mac
 
 import datetime, time
@@ -184,8 +184,8 @@ while True:
         # POST the card data
         try:
           data = {
-            'atr' : atr,
-            'uid' : id,
+            'atr' : hexarray(atr),
+            'uid' : hexarray(id),
             'mac_address' : get_mac(),
             'reader_ip' : socket.gethostbyname(socket.gethostname()),
             'reader_name' : 'nfc-' + 'xxx',  # TODO: Add IP here.
