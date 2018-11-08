@@ -30,16 +30,38 @@ import sys
 import argparse
 import syslog
 import os
+import socket
+import config
 
 # Tag logs to syslog with nfc_reader
 syslog.openlog('nfc_reader')
 
 # Shutdown card ATR & ID
-shutdownATR = '3b:8f:80:01:80:4f:0c:a0:00:00:03:06:03:00:03:00:00:00:00:68'
-shutdownID = '04:a3:8c:c2:da:51:80'
+shutdownATR = config.adminCardATR
+shutdownID = config.adminCardUID
+
+# MD5 secret
+md5secret = config.md5secret
+import hashlib
 
 from select import select
 from smartcard.scard import *
+
+from uuid import getnode as get_mac
+
+import datetime, time
+# Calculate the offset taking into account daylight saving time
+utc_offset_sec = time.altzone if time.localtime().tm_isdst else time.timezone
+utc_offset = datetime.timedelta(seconds=-utc_offset_sec)
+
+def datetimeNowTimeZoneIso8601():
+  return datetime.datetime.now().replace(tzinfo=datetime.timezone(offset=utc_offset)).isoformat()
+
+def generateMD5ForTap():
+  m = hashlib.md5()
+  currentDateTime = datetime.datetime.now().replace(tzinfo=datetime.timezone(offset=utc_offset))
+  datetimeMD5Format = currentDateTime.strftime("%Y/%m/%d-%H:%M:%S")
+  return m.update((md5secret + datetimeMD5Format).encode('utf-8'))
 
 import imp
 try:
@@ -78,8 +100,8 @@ assert len(readers)>0
 
 reader = readers[0]
 timeout = 10 # Timeout when there isn't any input
-url = 'https://museumos-prod.acmi.net.au/tap'
-devUrl = 'http://172.16.5.107:3000/tap'
+url = 'https://museumos-prod.acmi.net.au/api/taps/'
+devUrl = config.dev
 
 # Parse arguments handed in when running
 
@@ -169,7 +191,18 @@ while True:
         printToScreenAndSyslog('ID:', hexarray(id))
         # POST the card data
         try:
-          data = urllib.urlencode({'atr' : b64array(atr), 'id' : b64array(id)})
+          data = urllib.urlencode(
+            {
+              'atr' : b64array(atr),
+              'uid' : b64array(id),
+              'mac_address' : get_mac(),
+              'reader_ip' : socket.gethostbyname(socket.gethostname()),
+              'reader_name' : 'nfc-' + 'xxx',  # TODO: Add IP here.
+              'reader_model' : 'ACS ACR122U-A2NR',
+              'tap_datetime' : datetimeNowTimeZoneIso8601(),  # ISO8601 format
+              'md5' : generateMD5ForTap()
+            }
+          )
           content = urllib2.urlopen(url, data).read()
           printToScreenAndSyslog(content)
           if hexarray(atr) == shutdownATR and hexarray(id) == shutdownID:
