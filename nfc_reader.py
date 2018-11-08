@@ -148,22 +148,6 @@ else:
   else:
     printToScreenAndSyslog("No input. Defaulting to production.")
 
-if app_args.lookup:
-  # Lookup mode
-  url += 'lookup'
-else:
-  printToScreenAndSyslog('Lookup (l) or checkin (c)?')
-  rlist, _, _ = select([sys.stdin], [], [], timeout)
-  if rlist:
-    answer = sys.stdin.readline()
-    if answer[0] == 'l':
-      url += 'lookup'
-    else:
-      url += 'checkin'
-  else:
-    url += 'checkin'
-    printToScreenAndSyslog("No input. Defaulting to checkin.")
-
 printToScreenAndSyslog('URL: ' + url)
 
 ## NFC reader code
