@@ -48,12 +48,19 @@ import hashlib
 from select import select
 from smartcard.scard import *
 
-import uuid
 # Get mac address
+import uuid
 def get_mac():
   mac_num = hex(uuid.getnode()).replace('0x', '').upper()
   mac = ':'.join(mac_num[i : i + 2] for i in range(0, 11, 2))
   return mac
+
+# Get IP address
+import socket
+def get_ip_address():
+  return (([ip for ip in socket.gethostbyname_ex(socket.gethostname())[2] if not ip.startswith("127.")] or [[(s.connect(("8.8.8.8", 53)), s.getsockname()[0], s.close()) for s in [socket.socket(socket.AF_INET, socket.SOCK_DGRAM)]][0][1]]) + ["no IP found"])[0]
+ip_address = get_ip_address()
+reader_name = 'nfc-' + ip_address.split('.')[-1]
 
 import datetime, time
 # Calculate the offset taking into account daylight saving time
@@ -90,7 +97,7 @@ if hasWiringPi:
   wiringpi.softToneCreate(23)
 
 def hexarray(array):
-  return ":".join(["{:02x}".format(b) for b in array])
+  return "".join(["{:02x}".format(b) for b in array])
 
 def b64array(array):
   return base64.b64encode("".join([chr(b) for b in array]))
@@ -188,8 +195,8 @@ while True:
             'atr' : hexarray(atr),
             'uid' : hexarray(id),
             'mac_address' : get_mac(),
-            'reader_ip' : socket.gethostbyname(socket.gethostname()),
-            'reader_name' : 'nfc-' + 'xxx',  # TODO: Add IP here.
+            'reader_ip' : ip_address,
+            'reader_name' : reader_name,
             'reader_model' : 'ACS ACR122U-A2NR',
             'tap_datetime' : datetimeNowTimeZoneIso8601(),  # ISO8601 format
             'md5' : generateMD5ForTap()
