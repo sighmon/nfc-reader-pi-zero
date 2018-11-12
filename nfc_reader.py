@@ -34,6 +34,8 @@ import socket
 import config
 import json
 
+from django.utils import timezone
+
 # Tag logs to syslog with nfc_reader
 syslog.openlog('nfc_reader')
 
@@ -62,15 +64,8 @@ def get_ip_address():
 ip_address = get_ip_address()
 reader_name = 'nfc-' + ip_address.split('.')[-1]
 
-import datetime, time
-# Calculate the offset taking into account daylight saving time
-utc_offset_sec = time.altzone if time.localtime().tm_isdst else time.timezone
-utc_offset = datetime.timedelta(seconds=-utc_offset_sec)
-
 def datetimeNowTimeZoneIso8601():
-  # Python3
-  # return datetime.datetime.now().replace(tzinfo=datetime.timezone(offset=utc_offset)).isoformat()
-  return datetime.datetime.now().isoformat()
+  return timezone.now().isoformat()
 
 def generateMD5ForTap():
   m = hashlib.md5()
