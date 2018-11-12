@@ -33,8 +33,9 @@ import os
 import socket
 import config
 import json
+import pytz
 
-from django.utils import timezone
+from datetime import datetime
 
 # Tag logs to syslog with nfc_reader
 syslog.openlog('nfc_reader')
@@ -65,7 +66,7 @@ ip_address = get_ip_address()
 reader_name = 'nfc-' + ip_address.split('.')[-1]
 
 def datetimeNowTimeZoneIso8601():
-  return timezone.now().isoformat()
+  return datetime.now(pytz.utc).isoformat()
 
 def generateMD5ForTap():
   m = hashlib.md5()
