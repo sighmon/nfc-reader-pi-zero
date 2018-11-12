@@ -116,8 +116,8 @@ assert len(readers)>0
 
 reader = readers[0]
 timeout = 10 # Timeout when there isn't any input
-url = 'https://museumos-prod.acmi.net.au/api/taps/'
-devUrl = config.dev
+url = config.prodUrl
+devUrl = config.devUrl
 
 # Parse arguments handed in when running
 
