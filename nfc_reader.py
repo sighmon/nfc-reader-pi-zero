@@ -70,7 +70,7 @@ def datetimeNowTimeZoneIso8601():
 
 def generateMD5ForTap():
   m = hashlib.md5()
-  currentDateTime = datetime.datetime.now()
+  currentDateTime = datetime.now(pytz.utc).isoformat()
   datetimeMD5Format = currentDateTime.strftime("%Y/%m/%d-%H:%M:%S")
   m.update((md5secret + datetimeMD5Format).encode('utf-8'))
   return m.hexdigest()
