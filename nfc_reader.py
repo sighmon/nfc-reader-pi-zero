@@ -52,6 +52,9 @@ shutdownID = config.adminCardUID
 # MD5 secret
 md5secret = config.md5secret
 
+# Set timezone
+os.environ['TZ'] = 'Australia/Melbourne'
+time.tzset()
 
 # Get mac address
 import uuid
