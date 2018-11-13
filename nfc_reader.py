@@ -192,15 +192,17 @@ while True:
         try:
           data = {
             'nfc_tag': {
-              'atr' : hexarray(atr),
-              'uid' : hexarray(id)
+              'atr': hexarray(atr),
+              'uid': hexarray(id)
             },
-            'mac_address' : get_mac(),
-            'reader_ip' : ip_address,
-            'reader_name' : reader_name,
-            'reader_model' : 'ACS ACR122U-A2NR',
-            'tap_datetime' : datetimeNowTimeZoneIso8601(),  # ISO8601 format
-            'md5' : generateMD5ForTap()
+            'nfc_reader': {
+              'mac_address': get_mac(),
+              'reader_ip': ip_address,
+              'reader_name': reader_name,
+              'reader_model': 'ACS ACR122U-A2NR',
+            },
+            'tap_datetime': datetimeNowTimeZoneIso8601(),  # ISO8601 format
+            'md5': generateMD5ForTap()
           }
           printToScreenAndSyslog(json.dumps(data))
           request = urllib2.Request(url)
