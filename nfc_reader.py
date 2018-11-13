@@ -34,6 +34,11 @@ import socket
 import config
 import json
 import pytz
+import time
+import hashlib
+
+from select import select
+from smartcard.scard import *
 
 from datetime import datetime
 
@@ -46,10 +51,7 @@ shutdownID = config.adminCardUID
 
 # MD5 secret
 md5secret = config.md5secret
-import hashlib
 
-from select import select
-from smartcard.scard import *
 
 # Get mac address
 import uuid
@@ -188,8 +190,10 @@ while True:
         # POST the card data
         try:
           data = {
-            'atr' : hexarray(atr),
-            'uid' : hexarray(id),
+            'nfc_tag': {
+              'atr' : hexarray(atr),
+              'uid' : hexarray(id)
+            },
             'mac_address' : get_mac(),
             'reader_ip' : ip_address,
             'reader_name' : reader_name,
