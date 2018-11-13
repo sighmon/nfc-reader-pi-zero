@@ -34,7 +34,6 @@ import socket
 import config
 import json
 import pytz
-import time
 import hashlib
 
 from select import select
@@ -52,9 +51,8 @@ shutdownID = config.adminCardUID
 # MD5 secret
 md5secret = config.md5secret
 
-# Set timezone
-os.environ['TZ'] = 'Australia/Melbourne'
-time.tzset()
+# Set pytz timezone
+pytz_timezone = pytz.timezone('Australia/Melbourne')
 
 # Get mac address
 import uuid
@@ -71,11 +69,11 @@ ip_address = get_ip_address()
 reader_name = 'nfc-' + ip_address.split('.')[-1]
 
 def datetimeNowTimeZoneIso8601():
-  return datetime.now(pytz.utc).isoformat()
+  return datetime.now(pytz_timezone).isoformat()
 
 def generateMD5ForTap():
   m = hashlib.md5()
-  currentDateTime = datetime.now(pytz.utc)
+  currentDateTime = datetime.now(pytz_timezone)
   datetimeMD5Format = currentDateTime.strftime("%Y/%m/%d-%H:%M:%S")
   m.update((md5secret + datetimeMD5Format).encode('utf-8'))
   return m.hexdigest()
