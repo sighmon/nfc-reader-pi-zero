@@ -37,7 +37,6 @@ import pytz
 import hashlib
 import uuid
 import imp
-import atexit
 
 from select import select
 from smartcard.scard import *
@@ -181,7 +180,7 @@ def heartbeat():
             },
             'timestamp': datetimeNowTimeZoneIso8601()  # ISO8601 format
           }
-          printToScreenAndSyslog(json.dumps(data))
+          printToScreenAndSyslog('Heartbeat: ' + json.dumps(data))
           request = urllib2.Request(url)
           request.add_header('Content-Type', 'application/json')
           content = urllib2.urlopen(request, json.dumps(data)).read()
@@ -193,13 +192,6 @@ heartbeat.cancelled = False
 t = Thread(target=heartbeat)
 t.start()
 
-# Cancel heartbeat on quit
-def exit_handler():
-    printToScreenAndSyslog('Closing, so cancel heartbeat.')
-    heartbeat.cancelled = True
-
-atexit.register(exit_handler)
-
 ## NFC reader code
 
 readerstates = []
@@ -208,93 +200,97 @@ for i in xrange(len(readers)):
 hresult, newstates = SCardGetStatusChange(hcontext, 0, readerstates)
 
 while True:
-  hresult, newstates = SCardGetStatusChange(hcontext, 5000, newstates)
-  for reader, eventstate, atr in newstates:
-    if eventstate & SCARD_STATE_PRESENT:
-      printToScreenAndSyslog('Card found')
-      hresult, hcard, dwActiveProtocol = SCardConnect(
-      hcontext,
-      reader,
-      SCARD_SHARE_SHARED,
-      SCARD_PROTOCOL_T0 | SCARD_PROTOCOL_T1)
-      hresult, reader, state, protocol, atr = SCardStatus(hcard)
-      printToScreenAndSyslog('ATR:', hexarray(atr))
-      hresult, response = SCardTransmit(hcard,dwActiveProtocol,[0xFF,0xCA,0x00,0x00,0x00])
-      if response[-2:] == [0x90,0x00]:
-        # Last two bytes 90 & 00 means success!
-        # Remove them before printing the ID.
-        id = response[:-2]
-        printToScreenAndSyslog('ID:', hexarray(id))
-        # POST the card data
-        try:
-          data = {
-            'nfc_tag': {
-              'atr': hexarray(atr),
-              'uid': hexarray(id)
-            },
-            'nfc_reader': {
-              'mac_address': get_mac(),
-              'reader_ip': ip_address,
-              'reader_name': reader_name,
-              'reader_model': readerModel,
-            },
-            'tap_datetime': datetimeNowTimeZoneIso8601(),  # ISO8601 format
-            'md5': generateMD5ForTap()
-          }
-          printToScreenAndSyslog(json.dumps(data))
-          request = urllib2.Request(url)
-          request.add_header('Content-Type', 'application/json')
-          content = urllib2.urlopen(request, json.dumps(data)).read()
-          printToScreenAndSyslog(content)
-          if hexarray(atr) == shutdownATR and hexarray(id) == shutdownID:
-            # Shutdown card
+  try:
+    hresult, newstates = SCardGetStatusChange(hcontext, 5000, newstates)
+    for reader, eventstate, atr in newstates:
+      if eventstate & SCARD_STATE_PRESENT:
+        printToScreenAndSyslog('Card found')
+        hresult, hcard, dwActiveProtocol = SCardConnect(
+        hcontext,
+        reader,
+        SCARD_SHARE_SHARED,
+        SCARD_PROTOCOL_T0 | SCARD_PROTOCOL_T1)
+        hresult, reader, state, protocol, atr = SCardStatus(hcard)
+        printToScreenAndSyslog('ATR:', hexarray(atr))
+        hresult, response = SCardTransmit(hcard,dwActiveProtocol,[0xFF,0xCA,0x00,0x00,0x00])
+        if response[-2:] == [0x90,0x00]:
+          # Last two bytes 90 & 00 means success!
+          # Remove them before printing the ID.
+          id = response[:-2]
+          printToScreenAndSyslog('ID:', hexarray(id))
+          # POST the card data
+          try:
+            data = {
+              'nfc_tag': {
+                'atr': hexarray(atr),
+                'uid': hexarray(id)
+              },
+              'nfc_reader': {
+                'mac_address': get_mac(),
+                'reader_ip': ip_address,
+                'reader_name': reader_name,
+                'reader_model': readerModel,
+              },
+              'tap_datetime': datetimeNowTimeZoneIso8601(),  # ISO8601 format
+              'md5': generateMD5ForTap()
+            }
+            printToScreenAndSyslog(json.dumps(data))
+            request = urllib2.Request(url)
+            request.add_header('Content-Type', 'application/json')
+            content = urllib2.urlopen(request, json.dumps(data)).read()
+            printToScreenAndSyslog(content)
+            if hexarray(atr) == shutdownATR and hexarray(id) == shutdownID:
+              # Shutdown card
+              wiringpi.softToneWrite(23, 2000)
+              sleep(0.5)
+              wiringpi.softToneWrite(23, 1000)
+              sleep(0.5)
+              wiringpi.softToneWrite(23, 750)
+              sleep(0.5)
+              wiringpi.softToneWrite(23, 250)
+              sleep(0.5)
+              wiringpi.softToneWrite(23, 0)
+              # shutdown
+              os.system('shutdown now')
+            elif hasWiringPi and content == "null":
+              # Play bad sound
+              wiringpi.softToneWrite(23, 2000)
+              sleep(0.5)
+              wiringpi.softToneWrite(23, 1000)
+              sleep(0.5)
+              wiringpi.softToneWrite(23, 0)
+            else:
+              # Play good sound
+              for x in xrange(2000, 3000, 100):
+                wiringpi.softToneWrite(23, x)
+                sleep(0.05)
+              for x in xrange(3000, 2000, -100):
+                wiringpi.softToneWrite(23, x)
+                sleep(0.05)
+              wiringpi.softToneWrite(23, 0)
+          except Exception, e:
+            printToScreenAndSyslog('Exception: ', str(e))
+            # Play bad sound
             wiringpi.softToneWrite(23, 2000)
             sleep(0.5)
             wiringpi.softToneWrite(23, 1000)
             sleep(0.5)
             wiringpi.softToneWrite(23, 750)
             sleep(0.5)
-            wiringpi.softToneWrite(23, 250)
-            sleep(0.5)
-            wiringpi.softToneWrite(23, 0)
-            # shutdown
-            os.system('shutdown now')
-          elif hasWiringPi and content == "null":
-            # Play bad sound
-            wiringpi.softToneWrite(23, 2000)
-            sleep(0.5)
-            wiringpi.softToneWrite(23, 1000)
-            sleep(0.5)
             wiringpi.softToneWrite(23, 0)
           else:
-            # Play good sound
-            for x in xrange(2000, 3000, 100):
-              wiringpi.softToneWrite(23, x)
-              sleep(0.05)
-            for x in xrange(3000, 2000, -100):
-              wiringpi.softToneWrite(23, x)
-              sleep(0.05)
-            wiringpi.softToneWrite(23, 0)
-        except Exception, e:
-          printToScreenAndSyslog('Exception: ', str(e))
-          # Play bad sound
-          wiringpi.softToneWrite(23, 2000)
-          sleep(0.5)
-          wiringpi.softToneWrite(23, 1000)
-          sleep(0.5)
-          wiringpi.softToneWrite(23, 750)
-          sleep(0.5)
-          wiringpi.softToneWrite(23, 0)
+            pass
         else:
-          pass
-      else:
-        # Unsuccessful read.
-        printToScreenAndSyslog('ID: error! Response: ', hexarray(response))
-        # printToScreenAndSyslog()
-    # elif eventstate & SCARD_STATE_EMPTY:
-    	# Reader is empty, but commenting printing that to stop spamming on loop
-    	# print 'Reader empty\n'
+          # Unsuccessful read.
+          printToScreenAndSyslog('ID: error! Response: ', hexarray(response))
+          # printToScreenAndSyslog()
+      # elif eventstate & SCARD_STATE_EMPTY:
+        # Reader is empty, but commenting printing that to stop spamming on loop
+        # print 'Reader empty\n'
 
-    # else:
-      # Ignoring other event states too.
-      # print 'Unknown event state', eventstate
+      # else:
+        # Ignoring other event states too.
+        # print 'Unknown event state', eventstate
+  except KeyboardInterrupt as e:
+    printToScreenAndSyslog('Closing, so cancel heartbeat.')
+    heartbeat.cancelled = True
