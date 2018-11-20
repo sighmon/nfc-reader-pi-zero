@@ -119,6 +119,8 @@ reader = readers[0]
 timeout = 10 # Timeout when there isn't any input
 url = config.prodUrl
 devUrl = config.devUrl
+taps_api = url + '/api/taps/'
+statuses_api = url + '/api/statuses/'
 heartbeatFrequency = config.heartbeatFrequency
 readerModel = config.readerModel
 
@@ -181,7 +183,7 @@ def heartbeat():
             'timestamp': datetimeNowTimeZoneIso8601()  # ISO8601 format
           }
           printToScreenAndSyslog('Heartbeat: ' + json.dumps(data))
-          request = urllib2.Request(url + '/api/statuses/')
+          request = urllib2.Request(statuses_api)
           request.add_header('Content-Type', 'application/json')
           content = urllib2.urlopen(request, json.dumps(data)).read()
         except Exception, e:
@@ -235,7 +237,7 @@ while True:
               'md5': generateMD5ForTap()
             }
             printToScreenAndSyslog(json.dumps(data))
-            request = urllib2.Request(url + '/api/taps/')
+            request = urllib2.Request(taps_api)
             request.add_header('Content-Type', 'application/json')
             content = urllib2.urlopen(request, json.dumps(data)).read()
             printToScreenAndSyslog(content)
@@ -294,5 +296,7 @@ while True:
   except KeyboardInterrupt as e:
     printToScreenAndSyslog('Closing, so cancel heartbeat.')
     heartbeat.cancelled = True
+    # TODO: Fix exiting...
     # thread.interrupt_main()
     os._exit
+    os.kill()
