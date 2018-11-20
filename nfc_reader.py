@@ -35,6 +35,8 @@ import config
 import json
 import pytz
 import hashlib
+import uuid
+import imp
 
 from select import select
 from smartcard.scard import *
@@ -55,14 +57,12 @@ md5secret = config.md5secret
 pytz_timezone = pytz.timezone('Australia/Melbourne')
 
 # Get mac address
-import uuid
 def get_mac():
   mac_num = hex(uuid.getnode()).replace('0x', '').upper()
   mac = ':'.join(mac_num[i : i + 2] for i in range(0, 11, 2))
   return mac
 
 # Get IP address
-import socket
 def get_ip_address():
   return (([ip for ip in socket.gethostbyname_ex(socket.gethostname())[2] if not ip.startswith("127.")] or [[(s.connect(("8.8.8.8", 53)), s.getsockname()[0], s.close()) for s in [socket.socket(socket.AF_INET, socket.SOCK_DGRAM)]][0][1]]) + ["no IP found"])[0]
 ip_address = get_ip_address()
@@ -78,7 +78,6 @@ def generateMD5ForTap():
   m.update((md5secret + datetimeMD5Format).encode('utf-8'))
   return m.hexdigest()
 
-import imp
 try:
   imp.find_module('wiringpi')
   hasWiringPi = True
@@ -117,6 +116,8 @@ reader = readers[0]
 timeout = 10 # Timeout when there isn't any input
 url = config.prodUrl
 devUrl = config.devUrl
+heartbeatFrequency = config.heartbeatFrequency
+readerModel = config.readerModel
 
 # Parse arguments handed in when running
 
@@ -163,6 +164,33 @@ else:
 
 printToScreenAndSyslog('URL: ' + url)
 
+# Send heartbeat
+from threading import Thread
+import time
+
+def heartbeat():
+    while not heartbeat.cancelled:
+        try:
+          data = {
+            'nfc_reader': {
+              'mac_address': get_mac(),
+              'reader_ip': ip_address,
+              'reader_name': reader_name,
+              'reader_model': readerModel,
+            },
+            'timestamp': datetimeNowTimeZoneIso8601(),  # ISO8601 format
+          }
+          printToScreenAndSyslog(json.dumps(data))
+          request = urllib2.Request(url)
+          request.add_header('Content-Type', 'application/json')
+          content = urllib2.urlopen(request, json.dumps(data)).read()
+        time.sleep(heartbeatFrequency)
+heartbeat.cancelled = False
+
+t = Thread(target=heartbeat)
+t.start()
+# heartbeat.cancelled = True
+
 ## NFC reader code
 
 readerstates = []
@@ -199,7 +227,7 @@ while True:
               'mac_address': get_mac(),
               'reader_ip': ip_address,
               'reader_name': reader_name,
-              'reader_model': 'ACS ACR122U-A2NR',
+              'reader_model': readerModel,
             },
             'tap_datetime': datetimeNowTimeZoneIso8601(),  # ISO8601 format
             'md5': generateMD5ForTap()
