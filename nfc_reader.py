@@ -181,7 +181,7 @@ def heartbeat():
             'timestamp': datetimeNowTimeZoneIso8601()  # ISO8601 format
           }
           printToScreenAndSyslog('Heartbeat: ' + json.dumps(data))
-          request = urllib2.Request(url)
+          request = urllib2.Request(url + '/api/statuses/')
           request.add_header('Content-Type', 'application/json')
           content = urllib2.urlopen(request, json.dumps(data)).read()
         except Exception, e:
@@ -235,7 +235,7 @@ while True:
               'md5': generateMD5ForTap()
             }
             printToScreenAndSyslog(json.dumps(data))
-            request = urllib2.Request(url)
+            request = urllib2.Request(url + '/api/taps/')
             request.add_header('Content-Type', 'application/json')
             content = urllib2.urlopen(request, json.dumps(data)).read()
             printToScreenAndSyslog(content)
