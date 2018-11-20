@@ -168,6 +168,8 @@ else:
     printToScreenAndSyslog("No input. Defaulting to production.")
 
 printToScreenAndSyslog('URL: ' + url)
+printToScreenAndSyslog('Taps endpoint: ' + taps_api)
+printToScreenAndSyslog('Statuses endpoint: ' + statuses_api)
 
 # Send heartbeat in a background thread
 def heartbeat():
