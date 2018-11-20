@@ -119,8 +119,6 @@ reader = readers[0]
 timeout = 10 # Timeout when there isn't any input
 url = config.prodUrl
 devUrl = config.devUrl
-taps_api = url + '/api/taps/'
-statuses_api = url + '/api/statuses/'
 heartbeatFrequency = config.heartbeatFrequency
 readerModel = config.readerModel
 
@@ -167,7 +165,9 @@ else:
   else:
     printToScreenAndSyslog("No input. Defaulting to production.")
 
-printToScreenAndSyslog('URL: ' + url)
+taps_api = url + '/api/taps/'
+statuses_api = url + '/api/statuses/'
+printToScreenAndSyslog('MuseumOS: ' + url)
 printToScreenAndSyslog('Taps endpoint: ' + taps_api)
 printToScreenAndSyslog('Statuses endpoint: ' + statuses_api)
 
