@@ -189,8 +189,8 @@ def heartbeat():
         time.sleep(heartbeatFrequency)
 heartbeat.cancelled = False
 
-t = Thread(target=heartbeat)
-t.start()
+thread = Thread(target=heartbeat)
+thread.start()
 
 ## NFC reader code
 
