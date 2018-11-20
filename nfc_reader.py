@@ -294,5 +294,5 @@ while True:
   except KeyboardInterrupt as e:
     printToScreenAndSyslog('Closing, so cancel heartbeat.')
     heartbeat.cancelled = True
-    thread.interrupt_main()
+    # thread.interrupt_main()
     os._exit
