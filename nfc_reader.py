@@ -37,11 +37,15 @@ import pytz
 import hashlib
 import uuid
 import imp
+import atexit
 
 from select import select
 from smartcard.scard import *
 
 from datetime import datetime
+
+from threading import Thread
+import time
 
 # Tag logs to syslog with nfc_reader
 syslog.openlog('nfc_reader')
@@ -164,10 +168,7 @@ else:
 
 printToScreenAndSyslog('URL: ' + url)
 
-# Send heartbeat
-from threading import Thread
-import time
-
+# Send heartbeat in a background thread
 def heartbeat():
     while not heartbeat.cancelled:
         try:
@@ -191,7 +192,13 @@ heartbeat.cancelled = False
 
 t = Thread(target=heartbeat)
 t.start()
-# heartbeat.cancelled = True
+
+# Cancel heartbeat on quit
+def exit_handler():
+    printToScreenAndSyslog('Closing, so cancel heartbeat.')
+    heartbeat.cancelled = True
+
+atexit.register(exit_handler)
 
 ## NFC reader code
 
