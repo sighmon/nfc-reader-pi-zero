@@ -176,14 +176,16 @@ def heartbeat():
               'mac_address': get_mac(),
               'reader_ip': ip_address,
               'reader_name': reader_name,
-              'reader_model': readerModel,
+              'reader_model': readerModel
             },
-            'timestamp': datetimeNowTimeZoneIso8601(),  # ISO8601 format
+            'timestamp': datetimeNowTimeZoneIso8601()  # ISO8601 format
           }
           printToScreenAndSyslog(json.dumps(data))
           request = urllib2.Request(url)
           request.add_header('Content-Type', 'application/json')
           content = urllib2.urlopen(request, json.dumps(data)).read()
+        except Exception, e:
+          printToScreenAndSyslog('Exception: ', str(e))
         time.sleep(heartbeatFrequency)
 heartbeat.cancelled = False
 
