@@ -182,7 +182,7 @@ def heartbeat():
               'reader_name': reader_name,
               'reader_model': readerModel
             },
-            'timestamp': datetimeNowTimeZoneIso8601()  # ISO8601 format
+            'status_datetime': datetimeNowTimeZoneIso8601()  # ISO8601 format
           }
           printToScreenAndSyslog('Heartbeat: ' + json.dumps(data))
           request = urllib2.Request(statuses_api)
