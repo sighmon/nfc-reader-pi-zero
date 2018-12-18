@@ -37,6 +37,8 @@ import pytz
 import hashlib
 import uuid
 import imp
+from pygame import mixer
+# import vlc
 
 from select import select
 from smartcard.scard import *
@@ -107,6 +109,23 @@ def printToScreenAndSyslog(*args):
   print(" ".join(args))
   syslog.syslog(" ".join(args))
 
+def playSound(success):
+  current_directory = os.getcwd()
+  fileToPlay = "file:///" + current_directory
+  if success:
+    fileToPlay += "/success.mp3"
+  else:
+    fileToPlay += "/failed.mp3"
+  
+  printToScreenAndSyslog('Playing sound: ' + fileToPlay)
+
+  # Play the file
+  mixer.init()
+  mixer.music.load(fileToPlay)
+  mixer.music.play()
+  # p = vlc.MediaPlayer(fileToPlay)
+  # p.play()
+
 hresult, hcontext = SCardEstablishContext(SCARD_SCOPE_USER)
 
 assert hresult==SCARD_S_SUCCESS
@@ -151,6 +170,7 @@ sleep(0.05)
 wiringpi.softToneWrite(23, 1500)
 sleep(0.5)
 wiringpi.softToneWrite(23, 0)
+playSound(True)
 
 if app_args.development:
   # Development mode
@@ -263,6 +283,7 @@ while True:
               wiringpi.softToneWrite(23, 1000)
               sleep(0.5)
               wiringpi.softToneWrite(23, 0)
+              playSound(False)
             else:
               # Play good sound
               for x in xrange(2000, 3000, 100):
@@ -272,6 +293,7 @@ while True:
                 wiringpi.softToneWrite(23, x)
                 sleep(0.05)
               wiringpi.softToneWrite(23, 0)
+              playSound(True)
           except Exception, e:
             printToScreenAndSyslog('Exception: ', str(e))
             # Play bad sound
@@ -282,6 +304,7 @@ while True:
             wiringpi.softToneWrite(23, 750)
             sleep(0.5)
             wiringpi.softToneWrite(23, 0)
+            playSound(False)
           else:
             pass
         else:

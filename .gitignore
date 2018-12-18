@@ -1,4 +1,5 @@
 00-*
 config.py
 config.pyc
+/venv
 
