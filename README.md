@@ -28,6 +28,20 @@ Which gets you to create a blacklist file:
 	blacklist pn533
 	blacklist nfc
 	
+**NTP time server**
+
+To set an NTP time server on Raspbian Stretch, edit the servers in `/etc/systemd/timesyncd.conf`:
+
+```bash
+[Time]
+NTP=your.servername.goes.here
+FallbackNTP=0.debian.pool.ntp.org 1.debian.pool.ntp.org 2.debian.pool.ntp.org 3.debian.pool.ntp.org
+```
+
+Then turn on NTP by running: `$ timedatectl set-ntp true`
+
+And check its status: `$ timedatectl status` (it might take a minute or so to sync, and or may require a reboot)
+
 **Wifi**
 
 To add wireless hotspot information, run:
