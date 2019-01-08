@@ -320,6 +320,5 @@ while True:
     # TODO: Fix exiting...
     # thread.interrupt_main()
     # os._exit
-    os.kill()
-    cleanup_stop_thread()
+    # os.kill()
     sys.exit()
