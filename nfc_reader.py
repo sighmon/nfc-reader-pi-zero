@@ -321,3 +321,5 @@ while True:
     # thread.interrupt_main()
     # os._exit
     os.kill()
+    cleanup_stop_thread()
+    sys.exit()
