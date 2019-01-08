@@ -110,7 +110,9 @@ def printToScreenAndSyslog(*args):
 
 def playSound(sound_name):
   current_directory = os.getcwd()
-  current_directory = "/"
+  if current_directory == "/":
+    # Hard code because of /etc/rc.local
+    current_directory = "/home/pi/code/nfc-reader-pi-zero"
   fileToPlay = current_directory
   fileToPlay += "/" + sound_name + ".mp3"
 
