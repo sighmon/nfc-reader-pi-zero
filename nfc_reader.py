@@ -108,14 +108,11 @@ def printToScreenAndSyslog(*args):
   print(" ".join(args))
   syslog.syslog(" ".join(args))
 
-def playSound(success):
+def playSound(sound_name):
   current_directory = os.getcwd()
   fileToPlay = current_directory
-  if success:
-    fileToPlay += "/success.mp3"
-  else:
-    fileToPlay += "/failed.mp3"
-  
+  fileToPlay += "/" + sound_name + ".mp3"
+
   printToScreenAndSyslog('Playing sound: ' + fileToPlay)
 
   # Play the file
@@ -167,7 +164,7 @@ sleep(0.05)
 wiringpi.softToneWrite(23, 1500)
 sleep(0.5)
 wiringpi.softToneWrite(23, 0)
-playSound(True)
+playSound("startup")
 
 if app_args.development:
   # Development mode
@@ -225,7 +222,7 @@ while True:
     hresult, newstates = SCardGetStatusChange(hcontext, 5000, newstates)
     for reader, eventstate, atr in newstates:
       if eventstate & SCARD_STATE_PRESENT:
-        playSound(True)
+        playSound("success")
         printToScreenAndSyslog('Card found')
         hresult, hcard, dwActiveProtocol = SCardConnect(
         hcontext,
@@ -281,7 +278,7 @@ while True:
               wiringpi.softToneWrite(23, 1000)
               sleep(0.5)
               wiringpi.softToneWrite(23, 0)
-              playSound(False)
+              playSound("failed")
             else:
               # Play good sound
               for x in xrange(2000, 3000, 100):
@@ -292,7 +289,7 @@ while True:
                 sleep(0.05)
               wiringpi.softToneWrite(23, 0)
               # Don't play success here - too big of a delay...
-              # playSound(True)
+              # playSound("success")
           except Exception, e:
             printToScreenAndSyslog('Exception: ', str(e))
             # Play bad sound
@@ -303,7 +300,7 @@ while True:
             wiringpi.softToneWrite(23, 750)
             sleep(0.5)
             wiringpi.softToneWrite(23, 0)
-            playSound(False)
+            playSound("failed")
           else:
             pass
         else:
@@ -322,5 +319,5 @@ while True:
     heartbeat.cancelled = True
     # TODO: Fix exiting...
     # thread.interrupt_main()
-    os._exit
+    # os._exit
     os.kill()
