@@ -37,7 +37,7 @@ import pytz
 import hashlib
 import uuid
 import imp
-from pygame import mixer
+import pygame
 
 from select import select
 from smartcard.scard import *
@@ -110,6 +110,7 @@ def printToScreenAndSyslog(*args):
 
 def playSound(sound_name):
   current_directory = os.getcwd()
+  current_directory = "/"
   fileToPlay = current_directory
   fileToPlay += "/" + sound_name + ".mp3"
 
@@ -117,9 +118,9 @@ def playSound(sound_name):
 
   # Play the file
   try:
-    mixer.init()
-    mixer.music.load(fileToPlay)
-    mixer.music.play()
+    pygame.mixer.init()
+    pygame.mixer.music.load(fileToPlay)
+    pygame.mixer.music.play()
   except pygame.error as message:
     printToScreenAndSyslog('Playing sound failed: ' + fileToPlay)
 
