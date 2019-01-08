@@ -38,7 +38,6 @@ import hashlib
 import uuid
 import imp
 from pygame import mixer
-# import vlc
 
 from select import select
 from smartcard.scard import *
@@ -111,7 +110,7 @@ def printToScreenAndSyslog(*args):
 
 def playSound(success):
   current_directory = os.getcwd()
-  fileToPlay = "file:///" + current_directory
+  fileToPlay = current_directory
   if success:
     fileToPlay += "/success.mp3"
   else:
@@ -123,8 +122,6 @@ def playSound(success):
   mixer.init()
   mixer.music.load(fileToPlay)
   mixer.music.play()
-  # p = vlc.MediaPlayer(fileToPlay)
-  # p.play()
 
 hresult, hcontext = SCardEstablishContext(SCARD_SCOPE_USER)
 
@@ -228,6 +225,7 @@ while True:
     hresult, newstates = SCardGetStatusChange(hcontext, 5000, newstates)
     for reader, eventstate, atr in newstates:
       if eventstate & SCARD_STATE_PRESENT:
+        playSound(True)
         printToScreenAndSyslog('Card found')
         hresult, hcard, dwActiveProtocol = SCardConnect(
         hcontext,
@@ -293,7 +291,8 @@ while True:
                 wiringpi.softToneWrite(23, x)
                 sleep(0.05)
               wiringpi.softToneWrite(23, 0)
-              playSound(True)
+              # Don't play success here - too big of a delay...
+              # playSound(True)
           except Exception, e:
             printToScreenAndSyslog('Exception: ', str(e))
             # Play bad sound
