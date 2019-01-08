@@ -116,9 +116,12 @@ def playSound(sound_name):
   printToScreenAndSyslog('Playing sound: ' + fileToPlay)
 
   # Play the file
-  mixer.init()
-  mixer.music.load(fileToPlay)
-  mixer.music.play()
+  try:
+    mixer.init()
+    mixer.music.load(fileToPlay)
+    mixer.music.play()
+  except Exception:
+    printToScreenAndSyslog('Playing sound failed: ' + fileToPlay)
 
 hresult, hcontext = SCardEstablishContext(SCARD_SCOPE_USER)
 
@@ -149,21 +152,22 @@ printToScreenAndSyslog('######  Oh hello.  ######\n')
 
 # Welcome song
 
-wiringpi.softToneWrite(23, 1000)
-sleep(0.05)
-wiringpi.softToneWrite(23, 0)
-sleep(0.05)
-wiringpi.softToneWrite(23, 1000)
-sleep(0.05)
-wiringpi.softToneWrite(23, 0)
-sleep(0.05)
-wiringpi.softToneWrite(23, 1000)
-sleep(0.05)
-wiringpi.softToneWrite(23, 0)
-sleep(0.05)
-wiringpi.softToneWrite(23, 1500)
-sleep(0.5)
-wiringpi.softToneWrite(23, 0)
+if hasWiringPi:
+  wiringpi.softToneWrite(23, 1000)
+  sleep(0.05)
+  wiringpi.softToneWrite(23, 0)
+  sleep(0.05)
+  wiringpi.softToneWrite(23, 1000)
+  sleep(0.05)
+  wiringpi.softToneWrite(23, 0)
+  sleep(0.05)
+  wiringpi.softToneWrite(23, 1000)
+  sleep(0.05)
+  wiringpi.softToneWrite(23, 0)
+  sleep(0.05)
+  wiringpi.softToneWrite(23, 1500)
+  sleep(0.5)
+  wiringpi.softToneWrite(23, 0)
 playSound("startup")
 
 if app_args.development:
