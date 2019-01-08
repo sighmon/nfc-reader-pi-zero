@@ -120,7 +120,7 @@ def playSound(sound_name):
     mixer.init()
     mixer.music.load(fileToPlay)
     mixer.music.play()
-  except Exception:
+  except pygame.error as message:
     printToScreenAndSyslog('Playing sound failed: ' + fileToPlay)
 
 hresult, hcontext = SCardEstablishContext(SCARD_SCOPE_USER)
