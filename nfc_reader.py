@@ -216,9 +216,9 @@ while True:
         SCARD_PROTOCOL_T0 | SCARD_PROTOCOL_T1)
 
         # Turn off buzzer
-        # hresult, response = SCardTransmit(hcard,dwActiveProtocol,[0xFF,0x00,0x52,0x00,0x00])
-        # if response[-2:] == [0x90,0x00]:
-        #   printToScreenAndSyslog("successfully turned off buzzer.")
+        hresult, response = SCardTransmit(hcard,dwActiveProtocol,[0xFF,0x00,0x52,0x00,0x00])
+        if response[-2:] == [0x90,0x00]:
+          printToScreenAndSyslog("successfully turned off buzzer.")
 
         hresult, reader, state, protocol, atr = SCardStatus(hcard)
         printToScreenAndSyslog('ATR:', hexarray(atr))
