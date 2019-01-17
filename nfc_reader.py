@@ -237,10 +237,12 @@ while True:
         SCARD_SHARE_SHARED,
         SCARD_PROTOCOL_T0 | SCARD_PROTOCOL_T1)
 
-        # Turn off buzzer
+        # Turn off NFC reader default buzzer
         hresult, response = SCardTransmit(hcard,dwActiveProtocol,[0xFF,0x00,0x52,0x00,0x00])
+        # Turn on NFC reader default buzzer
+        # hresult, response = SCardTransmit(hcard,dwActiveProtocol,[0xFF,0x00,0x52,0xFF,0x00])
         if response[-2:] == [0x90,0x00]:
-          printToScreenAndSyslog("successfully turned off buzzer.")
+          printToScreenAndSyslog("Successfully toggled buzzer.")
 
         hresult, reader, state, protocol, atr = SCardStatus(hcard)
         printToScreenAndSyslog('ATR:', hexarray(atr))
