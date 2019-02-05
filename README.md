@@ -125,7 +125,7 @@ Run the card reader on boot
 
 To get this script to run at boot, add the following line to <code>/etc/rc.local</code>
 
-<code>echo -n 'p\nc\n' | python /home/pi/code/nfc-reader-pi-zero/nfc_reader.py | logger -t nfc_reader &</code>
+<code>echo -n 'p\nc\n' | sudo -H -u pi python /home/pi/code/nfc-reader-pi-zero/nfc_reader.py | logger -t nfc_reader &</code>
 
 The ```echo``` command enters 'p' for production, and 'c' for checkin.
 It then tries to run the python script, and output that to logger with the tag 'keymaster'. The ```&``` symbol makes it run in the background.
