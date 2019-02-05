@@ -23,8 +23,7 @@
 # For a hacky way to make this run at boot on the RaspberryPi,
 # running this from /etc/rc.local
 
-import urllib
-import urllib2
+import urllib.request
 import base64
 import sys
 import argparse
@@ -136,21 +135,22 @@ printToScreenAndSyslog('######  Oh hello.  ######\n')
 
 # Welcome song
 
-wiringpi.softToneWrite(23, 1000)
-sleep(0.05)
-wiringpi.softToneWrite(23, 0)
-sleep(0.05)
-wiringpi.softToneWrite(23, 1000)
-sleep(0.05)
-wiringpi.softToneWrite(23, 0)
-sleep(0.05)
-wiringpi.softToneWrite(23, 1000)
-sleep(0.05)
-wiringpi.softToneWrite(23, 0)
-sleep(0.05)
-wiringpi.softToneWrite(23, 1500)
-sleep(0.5)
-wiringpi.softToneWrite(23, 0)
+if hasWiringPi:
+  wiringpi.softToneWrite(23, 1000)
+  sleep(0.05)
+  wiringpi.softToneWrite(23, 0)
+  sleep(0.05)
+  wiringpi.softToneWrite(23, 1000)
+  sleep(0.05)
+  wiringpi.softToneWrite(23, 0)
+  sleep(0.05)
+  wiringpi.softToneWrite(23, 1000)
+  sleep(0.05)
+  wiringpi.softToneWrite(23, 0)
+  sleep(0.05)
+  wiringpi.softToneWrite(23, 1500)
+  sleep(0.5)
+  wiringpi.softToneWrite(23, 0)
 
 if app_args.development:
   # Development mode
@@ -185,10 +185,13 @@ def heartbeat():
             'status_datetime': datetimeNowTimeZoneIso8601()  # ISO8601 format
           }
           printToScreenAndSyslog('Heartbeat: ' + json.dumps(data))
-          request = urllib2.Request(statuses_api)
-          request.add_header('Content-Type', 'application/json')
-          content = urllib2.urlopen(request, json.dumps(data)).read()
-        except Exception, e:
+          request = urllib.request.Request(statuses_api)
+          request.add_header('Content-Type', 'application/json; charset=utf-8')
+          jsonData = json.dumps(data)
+          jsonDataBytes = jsonData.encode('utf-8')
+          request.add_header('Content-Length', len(jsonDataBytes))
+          content = urllib.request.urlopen(request, jsonDataBytes).read()
+        except Exception as e:
           printToScreenAndSyslog('Exception: ', str(e))
         time.sleep(heartbeatFrequency)
 heartbeat.cancelled = False
@@ -199,7 +202,7 @@ thread.start()
 ## NFC reader code
 
 readerstates = []
-for i in xrange(len(readers)):
+for i in range(len(readers)):
     readerstates += [ (readers[i], SCARD_STATE_UNAWARE) ]
 hresult, newstates = SCardGetStatusChange(hcontext, 0, readerstates)
 
@@ -245,49 +248,56 @@ while True:
               'md5': generateMD5ForTap()
             }
             printToScreenAndSyslog(json.dumps(data))
-            request = urllib2.Request(taps_api)
-            request.add_header('Content-Type', 'application/json')
-            content = urllib2.urlopen(request, json.dumps(data)).read()
-            printToScreenAndSyslog(content)
+            request = urllib.request.Request(taps_api)
+            request.add_header('Content-Type', 'application/json; charset=utf-8')
+            jsonData = json.dumps(data)
+            jsonDataBytes = jsonData.encode('utf-8')
+            request.add_header('Content-Length', len(jsonDataBytes))
+            content = urllib.request.urlopen(request, jsonDataBytes).read()
+            printToScreenAndSyslog(content.decode('utf-8'))
             if hexarray(atr) == shutdownATR and hexarray(id) == shutdownID:
               # Shutdown card
+              if hasWiringPi:
+                wiringpi.softToneWrite(23, 2000)
+                sleep(0.5)
+                wiringpi.softToneWrite(23, 1000)
+                sleep(0.5)
+                wiringpi.softToneWrite(23, 750)
+                sleep(0.5)
+                wiringpi.softToneWrite(23, 250)
+                sleep(0.5)
+                wiringpi.softToneWrite(23, 0)
+              # shutdown
+              os.system('shutdown now')
+            elif hasWiringPi and content == "null":
+              # Play bad sound
+              if hasWiringPi:
+                wiringpi.softToneWrite(23, 2000)
+                sleep(0.5)
+                wiringpi.softToneWrite(23, 1000)
+                sleep(0.5)
+                wiringpi.softToneWrite(23, 0)
+            else:
+              # Play good sound
+              if hasWiringPi:
+                for x in range(2000, 3000, 100):
+                  wiringpi.softToneWrite(23, x)
+                  sleep(0.05)
+                for x in range(3000, 2000, -100):
+                  wiringpi.softToneWrite(23, x)
+                  sleep(0.05)
+                wiringpi.softToneWrite(23, 0)
+          except Exception as e:
+            printToScreenAndSyslog('Exception: ', str(e))
+            # Play bad sound
+            if hasWiringPi:
               wiringpi.softToneWrite(23, 2000)
               sleep(0.5)
               wiringpi.softToneWrite(23, 1000)
               sleep(0.5)
               wiringpi.softToneWrite(23, 750)
               sleep(0.5)
-              wiringpi.softToneWrite(23, 250)
-              sleep(0.5)
               wiringpi.softToneWrite(23, 0)
-              # shutdown
-              os.system('shutdown now')
-            elif hasWiringPi and content == "null":
-              # Play bad sound
-              wiringpi.softToneWrite(23, 2000)
-              sleep(0.5)
-              wiringpi.softToneWrite(23, 1000)
-              sleep(0.5)
-              wiringpi.softToneWrite(23, 0)
-            else:
-              # Play good sound
-              for x in xrange(2000, 3000, 100):
-                wiringpi.softToneWrite(23, x)
-                sleep(0.05)
-              for x in xrange(3000, 2000, -100):
-                wiringpi.softToneWrite(23, x)
-                sleep(0.05)
-              wiringpi.softToneWrite(23, 0)
-          except Exception, e:
-            printToScreenAndSyslog('Exception: ', str(e))
-            # Play bad sound
-            wiringpi.softToneWrite(23, 2000)
-            sleep(0.5)
-            wiringpi.softToneWrite(23, 1000)
-            sleep(0.5)
-            wiringpi.softToneWrite(23, 750)
-            sleep(0.5)
-            wiringpi.softToneWrite(23, 0)
           else:
             pass
         else:
