@@ -36,6 +36,7 @@ import pytz
 import hashlib
 import uuid
 import imp
+import pygame
 
 from select import select
 from smartcard.scard import *
@@ -106,6 +107,24 @@ def printToScreenAndSyslog(*args):
   print(" ".join(args))
   syslog.syslog(" ".join(args))
 
+def playSound(sound_name):
+  current_directory = os.getcwd()
+  if current_directory == "/":
+    # Hard code because of /etc/rc.local
+    current_directory = "/home/pi/code/nfc-reader-pi-zero"
+  fileToPlay = current_directory
+  fileToPlay += "/" + sound_name + ".mp3"
+
+  printToScreenAndSyslog('Playing sound: ' + fileToPlay)
+
+  # Play the file
+  try:
+    pygame.mixer.init()
+    pygame.mixer.music.load(fileToPlay)
+    pygame.mixer.music.play()
+  except pygame.error as message:
+    printToScreenAndSyslog('Playing sound failed: ' + fileToPlay)
+
 hresult, hcontext = SCardEstablishContext(SCARD_SCOPE_USER)
 
 assert hresult==SCARD_S_SUCCESS
@@ -151,6 +170,7 @@ if hasWiringPi:
   wiringpi.softToneWrite(23, 1500)
   sleep(0.5)
   wiringpi.softToneWrite(23, 0)
+playSound("startup")
 
 if app_args.development:
   # Development mode
@@ -211,6 +231,7 @@ while True:
     hresult, newstates = SCardGetStatusChange(hcontext, 5000, newstates)
     for reader, eventstate, atr in newstates:
       if eventstate & SCARD_STATE_PRESENT:
+        playSound("success")
         printToScreenAndSyslog('Card found')
         hresult, hcard, dwActiveProtocol = SCardConnect(
         hcontext,
@@ -218,10 +239,12 @@ while True:
         SCARD_SHARE_SHARED,
         SCARD_PROTOCOL_T0 | SCARD_PROTOCOL_T1)
 
-        # Turn off buzzer
+        # Turn off NFC reader default buzzer
         hresult, response = SCardTransmit(hcard,dwActiveProtocol,[0xFF,0x00,0x52,0x00,0x00])
+        # Turn on NFC reader default buzzer
+        # hresult, response = SCardTransmit(hcard,dwActiveProtocol,[0xFF,0x00,0x52,0xFF,0x00])
         if response[-2:] == [0x90,0x00]:
-          printToScreenAndSyslog("successfully turned off buzzer.")
+          printToScreenAndSyslog("Successfully toggled buzzer.")
 
         hresult, reader, state, protocol, atr = SCardStatus(hcard)
         printToScreenAndSyslog('ATR:', hexarray(atr))
@@ -287,6 +310,8 @@ while True:
                   wiringpi.softToneWrite(23, x)
                   sleep(0.05)
                 wiringpi.softToneWrite(23, 0)
+              # Don't play success here - too big of a delay...
+              # playSound("success")
           except Exception as e:
             printToScreenAndSyslog('Exception: ', str(e))
             # Play bad sound
@@ -298,6 +323,7 @@ while True:
               wiringpi.softToneWrite(23, 750)
               sleep(0.5)
               wiringpi.softToneWrite(23, 0)
+            playSound("failed")
           else:
             pass
         else:
@@ -316,5 +342,6 @@ while True:
     heartbeat.cancelled = True
     # TODO: Fix exiting...
     # thread.interrupt_main()
-    os._exit
-    os.kill()
+    # os._exit
+    # os.kill()
+    sys.exit()

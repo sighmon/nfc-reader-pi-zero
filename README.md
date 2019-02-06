@@ -18,6 +18,7 @@ When running on a Raspberri Pi, you need to install these:
 <code>$ sudo apt-get install python-pyscard</code><br />
 <code>$ sudo apt-get install pcscd</code><br />
 <code>$ sudo apt-get install pcsc-tools</code>
+<code>$ sudo apt-get install python-pygame</code>
 
 If the reader isn't showing up, solve it using this:
 http://enjoy-rfid.blogspot.com.au/2015/03/raspberry-pi-nfc.html
