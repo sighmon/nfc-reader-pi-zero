@@ -8,9 +8,8 @@
 # Post successful card scan to museumos-prod.acmi.net.au
 
 # When running on a Raspberri Pi, you need to install these:
-# $ sudo apt-get install python-pyscard
-# $ sudo apt-get install pcscd
-# $ sudo apt-get install pcsc-tools
+# $ xargs -a pkglist.txt sudo apt install
+# $ pip3 install -r requirements.txt
 
 # If the reader isn't showing up, solve it using this:
 # http://enjoy-rfid.blogspot.com.au/2015/03/raspberry-pi-nfc.html
@@ -194,26 +193,26 @@ printToScreenAndSyslog('Statuses endpoint: ' + statuses_api)
 # Send heartbeat in a background thread
 def heartbeat():
     while not heartbeat.cancelled:
-        try:
-          data = {
-            'nfc_reader': {
-              'mac_address': get_mac(),
-              'reader_ip': ip_address,
-              'reader_name': reader_name,
-              'reader_model': readerModel
-            },
-            'status_datetime': datetimeNowTimeZoneIso8601()  # ISO8601 format
-          }
-          printToScreenAndSyslog('Heartbeat: ' + json.dumps(data))
-          request = urllib.request.Request(statuses_api)
-          request.add_header('Content-Type', 'application/json; charset=utf-8')
-          jsonData = json.dumps(data)
-          jsonDataBytes = jsonData.encode('utf-8')
-          request.add_header('Content-Length', len(jsonDataBytes))
-          content = urllib.request.urlopen(request, jsonDataBytes).read()
-        except Exception as e:
-          printToScreenAndSyslog('Exception: ', str(e))
-        time.sleep(heartbeatFrequency)
+      try:
+        data = {
+          'nfc_reader': {
+            'mac_address': get_mac(),
+            'reader_ip': ip_address,
+            'reader_name': reader_name,
+            'reader_model': readerModel
+          },
+          'status_datetime': datetimeNowTimeZoneIso8601()  # ISO8601 format
+        }
+        printToScreenAndSyslog('Heartbeat: ' + json.dumps(data))
+        request = urllib.request.Request(statuses_api)
+        request.add_header('Content-Type', 'application/json; charset=utf-8')
+        jsonData = json.dumps(data)
+        jsonDataBytes = jsonData.encode('utf-8')
+        request.add_header('Content-Length', len(jsonDataBytes))
+        urllib.request.urlopen(request, jsonDataBytes).read()
+      except Exception as e:
+        printToScreenAndSyslog('Exception: ', str(e))
+      time.sleep(heartbeatFrequency)
 heartbeat.cancelled = False
 
 thread = Thread(target=heartbeat)
@@ -231,7 +230,7 @@ while True:
     hresult, newstates = SCardGetStatusChange(hcontext, 5000, newstates)
     for reader, eventstate, atr in newstates:
       if eventstate & SCARD_STATE_PRESENT:
-        playSound("success")
+        playSound('success')
         printToScreenAndSyslog('Card found')
         hresult, hcard, dwActiveProtocol = SCardConnect(
         hcontext,
