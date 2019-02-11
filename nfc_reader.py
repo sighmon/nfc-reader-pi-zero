@@ -36,6 +36,7 @@ import hashlib
 import uuid
 import imp
 import pygame
+import blinkt
 
 from select import select
 from smartcard.scard import *
@@ -123,6 +124,19 @@ def playSound(sound_name):
     pygame.mixer.music.play()
   except pygame.error as message:
     printToScreenAndSyslog('Playing sound failed: ' + fileToPlay)
+
+def leds(animation):
+  if animation == 'success':
+    blinkt.set_all(0, 255, 0, 0.5)
+    blinkt.show()
+  elif animation == 'failed':
+    blinkt.set_all(255, 0, 0, 0.5)
+    blinkt.show()
+  elif animation == 'heartbeat':
+    # TODO: heartbeat
+    pass
+  else:
+    blinkt.clear()
 
 hresult, hcontext = SCardEstablishContext(SCARD_SCOPE_USER)
 
@@ -231,6 +245,7 @@ while True:
     for reader, eventstate, atr in newstates:
       if eventstate & SCARD_STATE_PRESENT:
         playSound('success')
+        leds('success')
         printToScreenAndSyslog('Card found')
         hresult, hcard, dwActiveProtocol = SCardConnect(
         hcontext,
@@ -323,6 +338,7 @@ while True:
               sleep(0.5)
               wiringpi.softToneWrite(23, 0)
             playSound("failed")
+            leds('failed')
           else:
             pass
         else:
