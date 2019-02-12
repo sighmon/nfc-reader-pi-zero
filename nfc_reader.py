@@ -129,9 +129,11 @@ def leds(animation):
   if animation == 'success':
     blinkt.set_all(0, 255, 0, 0.5)
     blinkt.show()
+    blinkt.clear()
   elif animation == 'failed':
     blinkt.set_all(255, 0, 0, 0.5)
     blinkt.show()
+    blinkt.clear()
   elif animation == 'heartbeat':
     # TODO: heartbeat
     pass
