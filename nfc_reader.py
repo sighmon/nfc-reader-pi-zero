@@ -130,15 +130,18 @@ def leds(animation):
     blinkt.set_all(0, 255, 0, 0.5)
     blinkt.show()
     blinkt.clear()
+    blinkt.show()
   elif animation == 'failed':
     blinkt.set_all(255, 0, 0, 0.5)
     blinkt.show()
     blinkt.clear()
+    blinkt.show()
   elif animation == 'heartbeat':
     # TODO: heartbeat
     pass
   else:
     blinkt.clear()
+    blinkt.show()
 
 hresult, hcontext = SCardEstablishContext(SCARD_SCOPE_USER)
 
