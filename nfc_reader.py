@@ -19,6 +19,7 @@ MD5_SECRET = os.getenv('MD5_SECRET')
 DEVICE_NAME = os.getenv('DEVICE_NAME')
 XOS_TAPS_ENDPOINT = os.getenv('XOS_TAPS_ENDPOINT')
 READER_MODEL = os.getenv('READER_MODEL')
+DEVICE_IP_ADDRESS = os.getenv('DEVICE_IP_ADDRESS')
 
 pytz_timezone = pytz.timezone('Australia/Melbourne')
 
@@ -30,7 +31,7 @@ def get_mac_address():
 
 
 def get_ip_address():
-    return socket.gethostbyname(socket.gethostname())
+    return DEVICE_IP_ADDRESS or '127.0.0.1'
 
 
 ip_address = get_ip_address()
