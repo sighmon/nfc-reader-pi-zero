@@ -1,346 +1,131 @@
-################################################
-## NFC Reader - MuseumOS NFC prototype reader ##
-################################################
-
-# scard documentation:
-# http://pyscard.sourceforge.net/epydoc/smartcard.scard.scard-module.html
-
-# Post successful card scan to museumos-prod.acmi.net.au
-
-# When running on a Raspberri Pi, you need to install these:
-# $ xargs -a pkglist.txt sudo apt install
-# $ pip3 install -r requirements.txt
-
-# If the reader isn't showing up, solve it using this:
-# http://enjoy-rfid.blogspot.com.au/2015/03/raspberry-pi-nfc.html
-# Which gets you to create a blacklist file:
-# /etc/modprobe.d/raspi-blacklist.conf 
-# That just has:
-# blacklist pn533
-# blacklist nfc
-
-# For a hacky way to make this run at boot on the RaspberryPi,
-# running this from /etc/rc.local
-
-import urllib.request
-import base64
-import sys
-import argparse
-import syslog
+import hashlib
 import os
 import socket
-import config
-import json
-import pytz
-import hashlib
 import uuid
-import imp
-import pygame
-
-from select import select
-from smartcard.scard import *
-
 from datetime import datetime
 
-from threading import Thread
-import time
+# import pygame
+import pytz
+import requests
+from smartcard.scard import (SCARD_PROTOCOL_T0, SCARD_PROTOCOL_T1,
+                             SCARD_S_SUCCESS, SCARD_SCOPE_USER,
+                             SCARD_SHARE_SHARED, SCARD_STATE_PRESENT,
+                             SCARD_STATE_UNAWARE, SCardConnect,
+                             SCardEstablishContext, SCardGetStatusChange,
+                             SCardListReaders, SCardStatus, SCardTransmit)
 
-# Tag logs to syslog with nfc_reader
-syslog.openlog('nfc_reader')
+# Constants
+MD5_SECRET = os.getenv('MD5_SECRET')
+DEVICE_NAME = os.getenv('DEVICE_NAME')
+XOS_TAPS_ENDPOINT = os.getenv('XOS_TAPS_ENDPOINT')
+READER_MODEL = os.getenv('READER_MODEL')
 
-# Shutdown card ATR & ID
-shutdownATR = config.adminCardATR
-shutdownID = config.adminCardUID
-
-# MD5 secret
-md5secret = config.md5secret
-
-# Set pytz timezone
 pytz_timezone = pytz.timezone('Australia/Melbourne')
 
-# Get mac address
-def get_mac():
-  mac_num = hex(uuid.getnode()).replace('0x', '').upper()
-  mac = ':'.join(mac_num[i : i + 2] for i in range(0, 11, 2))
-  return mac
 
-# Get IP address
+def get_mac_address():
+    mac_num = hex(uuid.getnode()).replace('0x', '').upper()
+    mac = ':'.join(mac_num[i:i+2] for i in range(0, 11, 2))
+    return mac
+
+
 def get_ip_address():
-  return (([ip for ip in socket.gethostbyname_ex(socket.gethostname())[2] if not ip.startswith("127.")] or [[(s.connect(("8.8.8.8", 53)), s.getsockname()[0], s.close()) for s in [socket.socket(socket.AF_INET, socket.SOCK_DGRAM)]][0][1]]) + ["no IP found"])[0]
+    return socket.gethostbyname(socket.gethostname())
+
+
 ip_address = get_ip_address()
-reader_name = 'nfc-' + ip_address.split('.')[-1]
+reader_name = DEVICE_NAME or 'nfc-' + ip_address.split('.')[-1]
 
-def datetimeNowTimeZoneIso8601():
-  return datetime.now(pytz_timezone).isoformat()
 
-def generateMD5ForTap():
-  m = hashlib.md5()
-  currentDateTime = datetime.now(pytz_timezone)
-  datetimeMD5Format = currentDateTime.strftime("%Y/%m/%d-%H:%M:%S")
-  m.update((md5secret + datetimeMD5Format).encode('utf-8'))
-  return m.hexdigest()
+def datetime_now():
+    return datetime.now(pytz_timezone).isoformat()
 
-try:
-  imp.find_module('wiringpi')
-  hasWiringPi = True
-except ImportError:
-  hasWiringPi = False
 
-if hasWiringPi:
-  # For GPIO pin control
-  import wiringpi as wiringpi  
-  from time import sleep
-  wiringpi.wiringPiSetupGpio()
-  # Connect the pieso buzzer to GPIO 23
-  # Ground to the third pin down from the top on the right column.
-  # Power to the eighth pin down from the top on the right column.
-  wiringpi.softToneCreate(23)
+def generate_md5_for_tap():
+    md5_hash = hashlib.md5()
+    current_datetime = datetime.now(pytz_timezone)
+    datetime_md5_format = current_datetime.strftime("%Y/%m/%d-%H:%M:%S")
+    md5_hash.update((MD5_SECRET + datetime_md5_format).encode('utf-8'))
+    return md5_hash.hexdigest()
 
-def hexarray(array):
-  return "".join(["{:02x}".format(b) for b in array])
 
-def b64array(array):
-  return base64.b64encode("".join([chr(b) for b in array]))
+def hex_array(array):
+    return "".join(["{:02x}".format(b) for b in array])
 
-def printToScreenAndSyslog(*args):
-  print(" ".join(args))
-  syslog.syslog(" ".join(args))
 
-def playSound(sound_name):
-  current_directory = os.getcwd()
-  if current_directory == "/":
-    # Hard code because of /etc/rc.local
-    current_directory = "/home/pi/code/nfc-reader-pi-zero"
-  fileToPlay = current_directory
-  fileToPlay += "/" + sound_name + ".mp3"
+# def play_sound(sound_name):
+#     current_directory = os.getcwd()
+#     if current_directory == "/":
+#         # Hard code because of /etc/rc.local
+#         current_directory = "/home/pi/code/nfc-reader-pi-zero"
+#     file_to_play = current_directory
+#     file_to_play += "/" + sound_name + ".mp3"
+#     try:
+#         pygame.mixer.init()
+#         pygame.mixer.music.load(file_to_play)
+#         pygame.mixer.music.play()
+#     except pygame.error:  # pylint: disable=no-member
+#         pass
 
-  printToScreenAndSyslog('Playing sound: ' + fileToPlay)
-
-  # Play the file
-  try:
-    pygame.mixer.init()
-    pygame.mixer.music.load(fileToPlay)
-    pygame.mixer.music.play()
-  except pygame.error as message:
-    printToScreenAndSyslog('Playing sound failed: ' + fileToPlay)
 
 hresult, hcontext = SCardEstablishContext(SCARD_SCOPE_USER)
 
-assert hresult==SCARD_S_SUCCESS
+assert hresult == SCARD_S_SUCCESS
 
 hresult, readers = SCardListReaders(hcontext, [])
 
-assert len(readers)>0
+assert readers
 
 reader = readers[0]
-timeout = 10 # Timeout when there isn't any input
-url = config.prodUrl
-devUrl = config.devUrl
-heartbeatFrequency = config.heartbeatFrequency
-readerModel = config.readerModel
-
-# Parse arguments handed in when running
-
-parser = argparse.ArgumentParser()
-parser.add_argument("-d", "--development", help="Run in development environment talking to localhost:3000.", action="store_true")
-parser.add_argument("-l", "--lookup", help="Run in lookup mode, only for admins.", action="store_true")
-app_args = parser.parse_args()
-
-# Welcome message
-
-printToScreenAndSyslog('\n###### MuseumOS ######')
-printToScreenAndSyslog('######  Oh hello.  ######\n')
+timeout = 10  # Timeout when there isn't any input
 
 # Welcome song
+# play_sound("startup")
 
-if hasWiringPi:
-  wiringpi.softToneWrite(23, 1000)
-  sleep(0.05)
-  wiringpi.softToneWrite(23, 0)
-  sleep(0.05)
-  wiringpi.softToneWrite(23, 1000)
-  sleep(0.05)
-  wiringpi.softToneWrite(23, 0)
-  sleep(0.05)
-  wiringpi.softToneWrite(23, 1000)
-  sleep(0.05)
-  wiringpi.softToneWrite(23, 0)
-  sleep(0.05)
-  wiringpi.softToneWrite(23, 1500)
-  sleep(0.5)
-  wiringpi.softToneWrite(23, 0)
-playSound("startup")
-
-if app_args.development:
-  # Development mode
-  url = devUrl
-else:
-  printToScreenAndSyslog('Development (d) or production (p)?')
-  rlist, _, _ = select([sys.stdin], [], [], timeout)
-  if rlist:
-    answer = sys.stdin.readline()
-    if answer[0] == 'd':
-      url = devUrl
-  else:
-    printToScreenAndSyslog("No input. Defaulting to production.")
-
-taps_api = url + '/api/taps/'
-statuses_api = url + '/api/statuses/'
-printToScreenAndSyslog('MuseumOS: ' + url)
-printToScreenAndSyslog('Taps endpoint: ' + taps_api)
-printToScreenAndSyslog('Statuses endpoint: ' + statuses_api)
-
-# Send heartbeat in a background thread
-def heartbeat():
-    while not heartbeat.cancelled:
-      try:
-        data = {
-          'nfc_reader': {
-            'mac_address': get_mac(),
-            'reader_ip': ip_address,
-            'reader_name': reader_name,
-            'reader_model': readerModel
-          },
-          'status_datetime': datetimeNowTimeZoneIso8601()  # ISO8601 format
-        }
-        printToScreenAndSyslog('Heartbeat: ' + json.dumps(data))
-        request = urllib.request.Request(statuses_api)
-        request.add_header('Content-Type', 'application/json; charset=utf-8')
-        jsonData = json.dumps(data)
-        jsonDataBytes = jsonData.encode('utf-8')
-        request.add_header('Content-Length', len(jsonDataBytes))
-        urllib.request.urlopen(request, jsonDataBytes).read()
-      except Exception as e:
-        printToScreenAndSyslog('Exception: ', str(e))
-      time.sleep(heartbeatFrequency)
-heartbeat.cancelled = False
-
-thread = Thread(target=heartbeat)
-thread.start()
-
-## NFC reader code
-
+# NFC reader code
 readerstates = []
 for i in range(len(readers)):
-    readerstates += [ (readers[i], SCARD_STATE_UNAWARE) ]
+    readerstates += [(readers[i], SCARD_STATE_UNAWARE)]
 hresult, newstates = SCardGetStatusChange(hcontext, 0, readerstates)
 
 while True:
-  try:
     hresult, newstates = SCardGetStatusChange(hcontext, 5000, newstates)
     for reader, eventstate, atr in newstates:
-      if eventstate & SCARD_STATE_PRESENT:
-        playSound('success')
-        printToScreenAndSyslog('Card found')
-        hresult, hcard, dwActiveProtocol = SCardConnect(
-        hcontext,
-        reader,
-        SCARD_SHARE_SHARED,
-        SCARD_PROTOCOL_T0 | SCARD_PROTOCOL_T1)
-
-        # Turn off NFC reader default buzzer
-        hresult, response = SCardTransmit(hcard,dwActiveProtocol,[0xFF,0x00,0x52,0x00,0x00])
-        # Turn on NFC reader default buzzer
-        # hresult, response = SCardTransmit(hcard,dwActiveProtocol,[0xFF,0x00,0x52,0xFF,0x00])
-        if response[-2:] == [0x90,0x00]:
-          printToScreenAndSyslog("Successfully toggled buzzer.")
-
-        hresult, reader, state, protocol, atr = SCardStatus(hcard)
-        printToScreenAndSyslog('ATR:', hexarray(atr))
-        hresult, response = SCardTransmit(hcard,dwActiveProtocol,[0xFF,0xCA,0x00,0x00,0x00])
-        if response[-2:] == [0x90,0x00]:
-          # Last two bytes 90 & 00 means success!
-          # Remove them before printing the ID.
-          id = response[:-2]
-          printToScreenAndSyslog('ID:', hexarray(id))
-          # POST the card data
-          try:
-            data = {
-              'nfc_tag': {
-                'atr': hexarray(atr),
-                'uid': hexarray(id)
-              },
-              'nfc_reader': {
-                'mac_address': get_mac(),
-                'reader_ip': ip_address,
-                'reader_name': reader_name,
-                'reader_model': readerModel,
-              },
-              'tap_datetime': datetimeNowTimeZoneIso8601(),  # ISO8601 format
-              'md5': generateMD5ForTap()
-            }
-            printToScreenAndSyslog(json.dumps(data))
-            request = urllib.request.Request(taps_api)
-            request.add_header('Content-Type', 'application/json; charset=utf-8')
-            jsonData = json.dumps(data)
-            jsonDataBytes = jsonData.encode('utf-8')
-            request.add_header('Content-Length', len(jsonDataBytes))
-            content = urllib.request.urlopen(request, jsonDataBytes).read()
-            printToScreenAndSyslog(content.decode('utf-8'))
-            if hexarray(atr) == shutdownATR and hexarray(id) == shutdownID:
-              # Shutdown card
-              if hasWiringPi:
-                wiringpi.softToneWrite(23, 2000)
-                sleep(0.5)
-                wiringpi.softToneWrite(23, 1000)
-                sleep(0.5)
-                wiringpi.softToneWrite(23, 750)
-                sleep(0.5)
-                wiringpi.softToneWrite(23, 250)
-                sleep(0.5)
-                wiringpi.softToneWrite(23, 0)
-              # shutdown
-              os.system('shutdown now')
-            elif hasWiringPi and content == "null":
-              # Play bad sound
-              if hasWiringPi:
-                wiringpi.softToneWrite(23, 2000)
-                sleep(0.5)
-                wiringpi.softToneWrite(23, 1000)
-                sleep(0.5)
-                wiringpi.softToneWrite(23, 0)
-            else:
-              # Play good sound
-              if hasWiringPi:
-                for x in range(2000, 3000, 100):
-                  wiringpi.softToneWrite(23, x)
-                  sleep(0.05)
-                for x in range(3000, 2000, -100):
-                  wiringpi.softToneWrite(23, x)
-                  sleep(0.05)
-                wiringpi.softToneWrite(23, 0)
-              # Don't play success here - too big of a delay...
-              # playSound("success")
-          except Exception as e:
-            printToScreenAndSyslog('Exception: ', str(e))
-            # Play bad sound
-            if hasWiringPi:
-              wiringpi.softToneWrite(23, 2000)
-              sleep(0.5)
-              wiringpi.softToneWrite(23, 1000)
-              sleep(0.5)
-              wiringpi.softToneWrite(23, 750)
-              sleep(0.5)
-              wiringpi.softToneWrite(23, 0)
-            playSound("failed")
-          else:
-            pass
-        else:
-          # Unsuccessful read.
-          printToScreenAndSyslog('ID: error! Response: ', hexarray(response))
-          # printToScreenAndSyslog()
-      # elif eventstate & SCARD_STATE_EMPTY:
-        # Reader is empty, but commenting printing that to stop spamming on loop
-        # print 'Reader empty\n'
-
-      # else:
-        # Ignoring other event states too.
-        # print 'Unknown event state', eventstate
-  except KeyboardInterrupt as e:
-    printToScreenAndSyslog('Closing, so cancel heartbeat.')
-    heartbeat.cancelled = True
-    # TODO: Fix exiting...
-    # thread.interrupt_main()
-    # os._exit
-    # os.kill()
-    sys.exit()
+        if eventstate & SCARD_STATE_PRESENT:
+            # play_sound('success')
+            hresult, hcard, dw_active_protocol = SCardConnect(
+                hcontext,
+                reader,
+                SCARD_SHARE_SHARED,
+                SCARD_PROTOCOL_T0 | SCARD_PROTOCOL_T1
+            )
+            # Turn off NFC reader default buzzer
+            hresult, response = SCardTransmit(
+                hcard,
+                dw_active_protocol,
+                [0xFF, 0x00, 0x52, 0x00, 0x00]
+            )
+            hresult, reader, state, protocol, atr = SCardStatus(hcard)
+            hresult, response = SCardTransmit(
+                hcard,
+                dw_active_protocol,
+                [0xFF, 0xCA, 0x00, 0x00, 0x00]
+            )
+            if response[-2:] == [0x90, 0x00]:
+                tag_id = response[:-2]
+                # POST the card data
+                data = {
+                    'nfc_tag': {
+                        'atr': hex_array(atr),
+                        'uid': hex_array(tag_id)
+                    },
+                    'nfc_reader': {
+                        'mac_address': get_mac_address(),
+                        'reader_ip': ip_address,
+                        'reader_name': reader_name,
+                        'reader_model': READER_MODEL,
+                    },
+                    'tap_datetime': datetime_now(),  # ISO8601 format
+                    'md5': generate_md5_for_tap()
+                }
+                response = requests.post(XOS_TAPS_ENDPOINT, json=data)

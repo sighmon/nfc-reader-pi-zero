@@ -1,3 +1,4 @@
 pygame
 pyscard
 pytz
+requests

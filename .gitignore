@@ -4,4 +4,5 @@ config.pyc
 venv
 .vscode/
 __pycache__/
+dev.env
 

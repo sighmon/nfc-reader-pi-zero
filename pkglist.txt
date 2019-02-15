@@ -1,4 +1,0 @@
-pcscd
-python3-pip
-swig
-
