@@ -20,6 +20,8 @@ DEVICE_NAME = os.getenv('DEVICE_NAME')
 XOS_TAPS_ENDPOINT = os.getenv('XOS_TAPS_ENDPOINT')
 READER_MODEL = os.getenv('READER_MODEL')
 DEVICE_IP_ADDRESS = os.getenv('DEVICE_IP_ADDRESS')
+DNS_SERVER = os.getenv('DNS_SERVER')
+DNS_PORT = os.getenv('DNS_PORT')
 
 pytz_timezone = pytz.timezone('Australia/Melbourne')
 
@@ -31,7 +33,11 @@ def get_mac_address():
 
 
 def get_ip_address():
-    return DEVICE_IP_ADDRESS or '127.0.0.1'
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.connect((DNS_SERVER, int(DNS_PORT)))
+    tmp_ip_address = s.getsockname()[0]
+    s.close()
+    return tmp_ip_address
 
 
 ip_address = get_ip_address()
