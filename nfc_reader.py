@@ -21,6 +21,8 @@ XOS_TAPS_ENDPOINT = os.getenv('XOS_TAPS_ENDPOINT')
 READER_MODEL = os.getenv('READER_MODEL')
 DNS_SERVER = os.getenv('DNS_SERVER')
 DNS_PORT = os.getenv('DNS_PORT')
+BALENA_SUPERVISOR_ADDRESS = os.getenv('BALENA_SUPERVISOR_ADDRESS')
+BALENA_SUPERVISOR_API_KEY = os.getenv('BALENA_SUPERVISOR_API_KEY')
 
 pytz_timezone = pytz.timezone('Australia/Melbourne')
 
@@ -32,11 +34,13 @@ def get_mac_address():
 
 
 def get_ip_address():
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.connect((DNS_SERVER, int(DNS_PORT)))
-    tmp_ip_address = s.getsockname()[0]
-    s.close()
-    return tmp_ip_address
+    try:
+        response = requests.get(BALENA_SUPERVISOR_ADDRESS + "/v1/device?apikey=" + BALENA_SUPERVISOR_API_KEY)
+        response.raise_for_status()
+        return response.json()['ip_address']
+    except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
+        print('Failed to get IP address from %s with error: %s' % BALENA_SUPERVISOR_ADDRESS, e)
+        return None
 
 
 ip_address = get_ip_address()
