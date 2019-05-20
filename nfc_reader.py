@@ -23,6 +23,7 @@ DNS_SERVER = os.getenv('DNS_SERVER')
 DNS_PORT = os.getenv('DNS_PORT')
 BALENA_SUPERVISOR_ADDRESS = os.getenv('BALENA_SUPERVISOR_ADDRESS')
 BALENA_SUPERVISOR_API_KEY = os.getenv('BALENA_SUPERVISOR_API_KEY')
+AUTH_TOKEN = os.getenv('AUTH_TOKEN')
 
 pytz_timezone = pytz.timezone('Australia/Melbourne')
 
@@ -138,4 +139,5 @@ while True:
                     'tap_datetime': datetime_now(),  # ISO8601 format
                     'md5': generate_md5_for_tap()
                 }
-                response = requests.post(XOS_TAPS_ENDPOINT, json=data)
+                HEADERS = {'Authorization': 'Token ' + AUTH_TOKEN}
+                response = requests.post(XOS_TAPS_ENDPOINT, json=data, headers=HEADERS)
