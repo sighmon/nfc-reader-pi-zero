@@ -111,11 +111,11 @@ while True:
                 SCARD_PROTOCOL_T0 | SCARD_PROTOCOL_T1
             )
             # Turn off NFC reader default buzzer
-            hresult, response = SCardTransmit(
-                hcard,
-                dw_active_protocol,
-                [0xFF, 0x00, 0x52, 0x00, 0x00]
-            )
+            # hresult, response = SCardTransmit(
+            #     hcard,
+            #     dw_active_protocol,
+            #     [0xFF, 0x00, 0x52, 0x00, 0x00]
+            # )
             hresult, reader, state, protocol, atr = SCardStatus(hcard)
             hresult, response = SCardTransmit(
                 hcard,
