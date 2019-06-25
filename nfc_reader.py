@@ -126,18 +126,7 @@ while True:
                 tag_id = response[:-2]
                 # POST the card data
                 data = {
-                    'nfc_tag': {
-                        'atr': hex_array(atr),
-                        'uid': hex_array(tag_id)
-                    },
-                    'nfc_reader': {
-                        'mac_address': get_mac_address(),
-                        'reader_ip': ip_address,
-                        'reader_name': reader_name,
-                        'reader_model': READER_MODEL,
-                    },
-                    'tap_datetime': datetime_now(),  # ISO8601 format
-                    'md5': generate_md5_for_tap()
+                    'uid': hex_array(tag_id)
                 }
                 HEADERS = {'Authorization': 'Token ' + AUTH_TOKEN}
                 response = requests.post(XOS_TAPS_ENDPOINT, json=data, headers=HEADERS)
