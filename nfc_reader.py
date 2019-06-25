@@ -130,4 +130,4 @@ while True:
                 }
                 HEADERS = {'Authorization': 'Token ' + AUTH_TOKEN}
                 response = requests.post(XOS_TAPS_ENDPOINT, json=data, headers=HEADERS)
-                print('Response: %s for NFCTag: %s' % response.code, hex_array(tag_id))
+                print('Response: %s for NFCTag: %s' % response.status_code, hex_array(tag_id))
