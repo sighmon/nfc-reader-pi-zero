@@ -40,7 +40,7 @@ def get_ip_address():
         response.raise_for_status()
         return response.json()['ip_address']
     except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
-        print('Failed to get IP address from %s with error: %s' % BALENA_SUPERVISOR_ADDRESS, e)
+        print('Failed to get IP address from %s with error: %s' % (BALENA_SUPERVISOR_ADDRESS, e))
         return None
 
 
