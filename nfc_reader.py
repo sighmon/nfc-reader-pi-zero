@@ -1,6 +1,5 @@
 import hashlib
 import os
-import socket
 import uuid
 from datetime import datetime
 
@@ -24,6 +23,8 @@ DNS_PORT = os.getenv('DNS_PORT')
 BALENA_SUPERVISOR_ADDRESS = os.getenv('BALENA_SUPERVISOR_ADDRESS')
 BALENA_SUPERVISOR_API_KEY = os.getenv('BALENA_SUPERVISOR_API_KEY')
 AUTH_TOKEN = os.getenv('AUTH_TOKEN')
+LABEL = os.getenv('LABEL')
+
 
 pytz_timezone = pytz.timezone('Australia/Melbourne')
 
@@ -130,14 +131,16 @@ while True:
                         'atr': hex_array(atr),
                         'uid': hex_array(tag_id)
                     },
-                    'nfc_reader': {
-                        'mac_address': get_mac_address(),
-                        'reader_ip': ip_address,
-                        'reader_name': reader_name,
-                        'reader_model': READER_MODEL,
-                    },
                     'tap_datetime': datetime_now(),  # ISO8601 format
-                    'md5': generate_md5_for_tap()
+                    'label': LABEL,
+                    'data': {
+                        'nfc_reader': {
+                            'mac_address': get_mac_address(),
+                            'reader_ip': ip_address,
+                            'reader_name': reader_name,
+                            'reader_model': READER_MODEL,
+                        }
+                    }
                 }
-                HEADERS = {'Authorization': 'Token ' + AUTH_TOKEN}
-                response = requests.post(XOS_TAPS_ENDPOINT, json=data, headers=HEADERS)
+                headers = {'Authorization': 'Token ' + AUTH_TOKEN}
+                response = requests.post(XOS_TAPS_ENDPOINT, json=data, headers=headers)
