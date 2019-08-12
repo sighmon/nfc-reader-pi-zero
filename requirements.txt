@@ -1,3 +1,4 @@
 pyscard
 pytz
 requests
+sentry-sdk

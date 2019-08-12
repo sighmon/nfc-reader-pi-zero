@@ -6,6 +6,7 @@ from datetime import datetime
 # import pygame
 import pytz
 import requests
+import sentry_sdk
 from smartcard.scard import (SCARD_PROTOCOL_T0, SCARD_PROTOCOL_T1,
                              SCARD_S_SUCCESS, SCARD_SCOPE_USER,
                              SCARD_SHARE_SHARED, SCARD_STATE_PRESENT,
@@ -24,7 +25,11 @@ BALENA_SUPERVISOR_ADDRESS = os.getenv('BALENA_SUPERVISOR_ADDRESS')
 BALENA_SUPERVISOR_API_KEY = os.getenv('BALENA_SUPERVISOR_API_KEY')
 AUTH_TOKEN = os.getenv('AUTH_TOKEN')
 LABEL = os.getenv('LABEL')
+SENTRY_ID = os.getenv('SENTRY_ID')
 
+
+# Setup Sentry
+sentry_sdk.init(SENTRY_ID)
 
 pytz_timezone = pytz.timezone('Australia/Melbourne')
 
@@ -42,6 +47,7 @@ def get_ip_address():
         return response.json()['ip_address']
     except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
         print('Failed to get IP address from %s with error: %s' % BALENA_SUPERVISOR_ADDRESS, e)
+        sentry_sdk.capture_exception(e)
         return None
 
 
