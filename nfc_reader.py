@@ -133,14 +133,14 @@ while True:
                 tag_id = response[:-2]
                 # POST the card data
                 data = {
-                    'nfc_tag': {
+                    'lens': {
                         'atr': hex_array(atr),
                         'uid': hex_array(tag_id)
                     },
                     'tap_datetime': datetime_now(),  # ISO8601 format
                     'label': LABEL,
                     'data': {
-                        'nfc_reader': {
+                        'lens_reader': {
                             'mac_address': get_mac_address(),
                             'reader_ip': ip_address,
                             'reader_name': reader_name,
