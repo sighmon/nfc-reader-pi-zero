@@ -1,6 +1,6 @@
 NFC Reader prototype
 ==========
-A Raspberry Pi Zero based NFC reader prototype to talk to MuseumOS.
+A Raspberry Pi Zero based NFC reader prototype to talk to XOS.
 
 Hardware
 --------
